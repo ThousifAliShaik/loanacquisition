@@ -40,20 +40,6 @@ CREATE TABLE roles (
     role_name USER_ROLES UNIQUE NOT NULL  -- Using updated USER_ROLES ENUM
 );
 
--- Create Users Table with username as a foreign key
-CREATE TABLE users (
-    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    secret_key VARCHAR(255) NOT NULL,
-    last_login TIMESTAMP,
-    role USER_ROLES NOT NULL,  -- Using the updated USER_ROLES ENUM
-    is_active BOOLEAN DEFAULT FALSE,
-
-    -- Foreign key to ensure one-to-one relationship with user_profiles using username
-    FOREIGN KEY (username) REFERENCES user_profiles(username) ON DELETE CASCADE
-);
-
 -- Create user_profiles Table
 CREATE TABLE user_profiles (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -65,9 +51,25 @@ CREATE TABLE user_profiles (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     -- Foreign key to roles table (Many-to-One relationship)
-    role_name USER_ROLES NOT NULL,  -- Link to role_name instead of role_id
-    FOREIGN KEY (role_name) REFERENCES roles(role_name) ON DELETE SET NULL  -- Link to role_name in the roles table
+    role_id UUID NOT NULL,  -- Link to role_name instead of role_id
+    FOREIGN KEY (role_id) REFERENCES roles(role_id) ON DELETE SET NULL  -- Link to role_name in the roles table
 );
+
+
+-- Create Users Table with username as a foreign key
+CREATE TABLE users (
+    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255),
+    secret_key VARCHAR(255) NOT NULL,
+    last_login TIMESTAMP,
+    role_id UUID NOT NULL,  -- Using the updated USER_ROLES ENUM
+    is_active BOOLEAN DEFAULT FALSE,
+
+    -- Foreign key to ensure one-to-one relationship with user_profiles using username
+    FOREIGN KEY (username) REFERENCES user_profiles(username) ON DELETE CASCADE
+);
+
 
 -- Create Permissions Table
 CREATE TABLE permissions (
@@ -96,61 +98,61 @@ INSERT INTO roles (role_id, role_name) VALUES
 	
 -- Insert test data into user_profiles with capitalized enums
 INSERT INTO user_profiles (
-    user_id, username, email, full_name, phone_number, created_at, updated_at, role_name
+    user_id, username, email, full_name, phone_number, created_at, updated_at, role_id
 ) VALUES
     (
         gen_random_uuid(), 'loan_officer', 'loan_officer@example.com', 'Loan Officer', '123-456-7890', 
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'LOAN_OFFICER'
+        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='LOAN_OFFICER')
     ),
     (
         gen_random_uuid(), 'underwriter', 'underwriter@example.com', 'Underwriter', '123-456-7891', 
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'UNDERWRITER'
+        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='UNDERWRITER')
     ),
     (
         gen_random_uuid(), 'manager', 'manager@example.com', 'Manager', '123-456-7892', 
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'MANAGER'
+        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='MANAGER')
     ),
     (
         gen_random_uuid(), 'senior_manager', 'senior_manager@example.com', 'Senior Manager', '123-456-7893', 
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'SENIOR_MANAGER'
+        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='SENIOR_MANAGER')
     ),
     (
         gen_random_uuid(), 'risk_analyst', 'risk_analyst@example.com', 'Risk Analyst', '123-456-7894', 
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'RISK_ANALYST'
+        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='RISK_ANALYST')
     ),
     (
         gen_random_uuid(), 'system_admin', 'system_admin@example.com', 'System Administrator', '123-456-7895', 
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'SYSTEM_ADMINISTRATOR'
+        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='SYSTEM_ADMINISTRATOR')
     ),
     (
         gen_random_uuid(), 'compliance_officer', 'compliance_officer@example.com', 'Compliance Officer', '123-456-7896', 
-        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'COMPLIANCE_OFFICER'
+        CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='COMPLIANCE_OFFICER')
     );
 
 -- Insert test data into the users table
 INSERT INTO users (
-    user_id, username, password, secret_key, last_login, role, is_active
+    user_id, username, password, secret_key, last_login, role_id, is_active
 ) VALUES
     (
-        gen_random_uuid(), 'loan_officer', 'password123', 'secret_key_1', CURRENT_TIMESTAMP, 'LOAN_OFFICER', TRUE
+        gen_random_uuid(), 'loan_officer', 'password123', 'secret_key_1', CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='LOAN_OFFICER'), TRUE
     ),
     (
-        gen_random_uuid(), 'underwriter', 'password123', 'secret_key_2', CURRENT_TIMESTAMP, 'UNDERWRITER', TRUE
+        gen_random_uuid(), 'underwriter', 'password123', 'secret_key_2', CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='UNDERWRITER'), TRUE
     ),
     (
-        gen_random_uuid(), 'manager', 'password123', 'secret_key_3', CURRENT_TIMESTAMP, 'MANAGER', TRUE
+        gen_random_uuid(), 'manager', 'password123', 'secret_key_3', CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='MANAGER'), TRUE
     ),
     (
-        gen_random_uuid(), 'senior_manager', 'password123', 'secret_key_4', CURRENT_TIMESTAMP, 'SENIOR_MANAGER', TRUE
+        gen_random_uuid(), 'senior_manager', 'password123', 'secret_key_4', CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='SENIOR_MANAGER'), TRUE
     ),
     (
-        gen_random_uuid(), 'risk_analyst', 'password123', 'secret_key_5', CURRENT_TIMESTAMP, 'RISK_ANALYST', TRUE
+        gen_random_uuid(), 'risk_analyst', 'password123', 'secret_key_5', CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='RISK_ANALYST'), TRUE
     ),
     (
-        gen_random_uuid(), 'system_admin', 'password123', 'secret_key_6', CURRENT_TIMESTAMP, 'SYSTEM_ADMINISTRATOR', TRUE
+        gen_random_uuid(), 'system_admin', 'password123', 'secret_key_6', CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='SYSTEM_ADMINISTRATOR'), TRUE
     ),
     (
-        gen_random_uuid(), 'compliance_officer', 'password123', 'secret_key_7', CURRENT_TIMESTAMP, 'COMPLIANCE_OFFICER', TRUE
+        gen_random_uuid(), 'compliance_officer', 'password123', 'secret_key_7', CURRENT_TIMESTAMP, (SELECT role_id FROM roles WHERE role_name ='COMPLIANCE_OFFICER'), TRUE
     );
 	
 -- Insert permissions into the Permissions table
@@ -547,3 +549,4 @@ INSERT INTO audit_logs (
         '{"previous_file_path": "/files/old_credit_score_report.pdf", "new_file_path": "/files/credit_score_loan_officer.pdf"}',
         CURRENT_TIMESTAMP
     );
+
