@@ -14,7 +14,6 @@ This project is a comprehensive **Loan Acquisition and Management System** desig
 - [Endpoints (API Documentation)](#endpoints-api-documentation)
 - [User Stories and Progress](#user-stories-and-progress)
 - [Contributing](#contributing)
-- [License](#license)
 
 ---
 
