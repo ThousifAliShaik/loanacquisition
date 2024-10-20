@@ -1,7 +1,7 @@
 package com.freddiemac.loanacquisition.service;
 
 
-import com.freddiemac.loanacquisition.DTO.RolePermissionDTO;
+import com.freddiemac.loanacquisition.dto.RolePermissionDTO;
 import com.freddiemac.loanacquisition.entity.PermissionName;
 import com.freddiemac.loanacquisition.entity.RolePermission;
 import com.freddiemac.loanacquisition.repository.RolePermissionRepository;

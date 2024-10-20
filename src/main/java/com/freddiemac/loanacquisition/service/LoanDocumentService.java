@@ -2,7 +2,7 @@ package com.freddiemac.loanacquisition.service;
 
 import org.springframework.stereotype.Service;
 
-import com.freddiemac.loanacquisition.DTO.LoanDocumentDTO;
+import com.freddiemac.loanacquisition.dto.LoanDocumentDTO;
 import com.freddiemac.loanacquisition.entity.LoanDocument;
 import com.freddiemac.loanacquisition.repository.LoanDocumentRepository;
 

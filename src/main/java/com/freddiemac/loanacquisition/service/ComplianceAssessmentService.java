@@ -1,6 +1,6 @@
 package com.freddiemac.loanacquisition.service;
 
-import com.freddiemac.loanacquisition.DTO.ComplianceAssessmentDTO;
+import com.freddiemac.loanacquisition.dto.ComplianceAssessmentDTO;
 import com.freddiemac.loanacquisition.entity.ComplianceAssessment;
 import com.freddiemac.loanacquisition.entity.ComplianceStatus;
 import com.freddiemac.loanacquisition.repository.ComplianceAssessmentRepository;

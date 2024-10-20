@@ -2,7 +2,7 @@ package com.freddiemac.loanacquisition.service;
 
 import org.springframework.stereotype.Service;
 
-import com.freddiemac.loanacquisition.DTO.LoanApprovalDTO;
+import com.freddiemac.loanacquisition.dto.LoanApprovalDTO;
 import com.freddiemac.loanacquisition.entity.ApprovalStatus;
 import com.freddiemac.loanacquisition.entity.LoanApproval;
 import com.freddiemac.loanacquisition.repository.LoanApprovalRepository;

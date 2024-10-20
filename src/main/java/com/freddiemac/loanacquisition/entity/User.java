@@ -18,18 +18,17 @@ public class User {
     @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password", nullable = true)
     private String password;
 
     @Column(name = "secret_key", nullable = false)
     private String secretKey;
 
-    @Column(name = "last_login")
+    @Column(name = "last_login", nullable = true)
     private Timestamp lastLogin;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private UserRole role;
+    @Column(name = "role_id", nullable = false)
+    private UUID roleId;
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
@@ -43,7 +42,7 @@ public class User {
 
     @OneToMany(mappedBy = "uploadedBy")
     private Set<LoanDocument> loanDocuments;
-
+    
 	public UUID getUserId() {
 		return userId;
 	}
@@ -84,12 +83,12 @@ public class User {
 		this.lastLogin = lastLogin;
 	}
 
-	public UserRole getRole() {
-		return role;
+	public UUID getRoleId() {
+		return roleId;
 	}
 
-	public void setRole(UserRole role) {
-		this.role = role;
+	public void setRoleId(UUID roleId) {
+		this.roleId = roleId;
 	}
 
 	public Boolean getIsActive() {
@@ -98,6 +97,30 @@ public class User {
 
 	public void setIsActive(Boolean isActive) {
 		this.isActive = isActive;
+	}
+
+	public UserProfile getUserProfile() {
+		return userProfile;
+	}
+
+	public void setUserProfile(UserProfile userProfile) {
+		this.userProfile = userProfile;
+	}
+
+	public Set<LoanApplication> getLoanApplications() {
+		return loanApplications;
+	}
+
+	public void setLoanApplications(Set<LoanApplication> loanApplications) {
+		this.loanApplications = loanApplications;
+	}
+
+	public Set<LoanDocument> getLoanDocuments() {
+		return loanDocuments;
+	}
+
+	public void setLoanDocuments(Set<LoanDocument> loanDocuments) {
+		this.loanDocuments = loanDocuments;
 	}
     
     

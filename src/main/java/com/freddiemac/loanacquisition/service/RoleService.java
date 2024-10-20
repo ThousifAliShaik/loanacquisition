@@ -1,26 +1,24 @@
 package com.freddiemac.loanacquisition.service;
 
 
-import com.freddiemac.loanacquisition.DTO.RoleDTO;
-import com.freddiemac.loanacquisition.entity.Role;
-import com.freddiemac.loanacquisition.entity.UserRole;
-import com.freddiemac.loanacquisition.repository.RoleRepository;
-import org.springframework.stereotype.Service;
-
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.freddiemac.loanacquisition.dto.RoleDTO;
+import com.freddiemac.loanacquisition.entity.Role;
+import com.freddiemac.loanacquisition.entity.UserRole;
+import com.freddiemac.loanacquisition.repository.RoleRepository;
+
 @Service
 public class RoleService {
 
-    private final RoleRepository roleRepository;
-
-    public RoleService(RoleRepository roleRepository) {
-        this.roleRepository = roleRepository;
-    }
+	@Autowired
+    private RoleRepository roleRepository;
 
     // Convert Role entity to RoleDTO
     private RoleDTO convertToDTO(Role role) {
@@ -29,8 +27,8 @@ public class RoleService {
             role.getRoleName().name() // Enum as String
         );
     }
-
-    // Convert RoleDTO to Role entity
+   
+	// Convert RoleDTO to Role entity
     private Role convertToEntity(RoleDTO roleDTO) {
         Role role = new Role();
         role.setRoleId(roleDTO.getRoleId());

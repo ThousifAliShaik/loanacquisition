@@ -1,6 +1,6 @@
 package com.freddiemac.loanacquisition.service;
 
-import com.freddiemac.loanacquisition.DTO.AuditLogDTO;
+import com.freddiemac.loanacquisition.dto.AuditLogDTO;
 import com.freddiemac.loanacquisition.entity.AuditAction;
 import com.freddiemac.loanacquisition.entity.AuditLog;
 import com.freddiemac.loanacquisition.entity.EntityType;

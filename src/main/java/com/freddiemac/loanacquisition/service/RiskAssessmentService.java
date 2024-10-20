@@ -1,7 +1,7 @@
 package com.freddiemac.loanacquisition.service;
 
 
-import com.freddiemac.loanacquisition.DTO.RiskAssessmentDTO;
+import com.freddiemac.loanacquisition.dto.RiskAssessmentDTO;
 import com.freddiemac.loanacquisition.entity.RiskAssessment;
 import com.freddiemac.loanacquisition.entity.RiskCategory;
 import com.freddiemac.loanacquisition.repository.RiskAssessmentRepository;

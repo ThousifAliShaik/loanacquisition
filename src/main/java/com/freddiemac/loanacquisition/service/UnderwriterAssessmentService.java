@@ -1,6 +1,6 @@
 package com.freddiemac.loanacquisition.service;
 
-import com.freddiemac.loanacquisition.DTO.UnderwriterAssessmentDTO;
+import com.freddiemac.loanacquisition.dto.UnderwriterAssessmentDTO;
 import com.freddiemac.loanacquisition.entity.AssessmentOutcome;
 import com.freddiemac.loanacquisition.entity.IncomeVerificationStatus;
 import com.freddiemac.loanacquisition.entity.UnderwriterAssessment;

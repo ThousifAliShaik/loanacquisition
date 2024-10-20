@@ -23,6 +23,17 @@ public class Role {
     @OneToMany(mappedBy = "role")
     private Set<RolePermission> rolePermissions;
 
+	public Role() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public Role(UUID roleId, UserRole roleName) {
+		super();
+		this.roleId = roleId;
+		this.roleName = roleName;
+	}
+
 	public UUID getRoleId() {
 		return roleId;
 	}

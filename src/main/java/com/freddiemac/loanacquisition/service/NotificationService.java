@@ -1,6 +1,6 @@
 package com.freddiemac.loanacquisition.service;
 
-import com.freddiemac.loanacquisition.DTO.NotificationDTO;
+import com.freddiemac.loanacquisition.dto.NotificationDTO;
 import com.freddiemac.loanacquisition.entity.Notification;
 import com.freddiemac.loanacquisition.entity.NotificationType;
 import com.freddiemac.loanacquisition.repository.NotificationRepository;

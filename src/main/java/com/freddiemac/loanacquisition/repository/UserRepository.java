@@ -1,6 +1,6 @@
 package com.freddiemac.loanacquisition.repository;
 
-import com.freddiemac.loanacquisition.DTO.UserDTO;
+import com.freddiemac.loanacquisition.dto.UserDTO;
 import com.freddiemac.loanacquisition.entity.User;
 import com.freddiemac.loanacquisition.entity.UserRole;
 
@@ -17,6 +17,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
 	List<User> findByIsActive(Boolean isActive);
 
-	Collection<User> findByRole(UserRole role);
+	Collection<User> findByRoleId(UUID roleId);
 }
 

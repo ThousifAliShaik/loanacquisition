@@ -28,7 +28,7 @@ public class AuditLog {
     @Column(name = "entity_id", nullable = false)
     private UUID entityId;
 
-    @Column(name = "change_details")
+    @Column(name = "change_details", columnDefinition = "json")
     private String changeDetails;  // Assuming JSON string type; if using JSONB, map it appropriately
 
     @Column(name = "timestamp", nullable = false)

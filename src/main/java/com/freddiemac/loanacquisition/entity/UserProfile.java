@@ -1,7 +1,20 @@
 package com.freddiemac.loanacquisition.entity;
-import jakarta.persistence.*;
-import java.util.UUID;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "user_profiles")
@@ -11,7 +24,7 @@ public class UserProfile {
     @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "username", nullable = false, unique = true)
+    @Column(name = "username", nullable = false, unique = true, insertable = false, updatable = false)
     private String username;
 
     @Column(name = "email", nullable = false, unique = true)
@@ -23,20 +36,29 @@ public class UserProfile {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Timestamp createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private Timestamp updatedAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role_name", nullable = false)
-    private UserRole roleName;
+    @Column(name = "role_id", nullable = false)
+    private UUID roleId;
 
     @ManyToOne
-    @JoinColumn(name = "role_name", referencedColumnName = "role_name", insertable = false, updatable = false)
+    @JoinColumn(name = "role_id", referencedColumnName = "role_id", insertable = false, updatable = false)
     private Role role;
+    
+    @OneToOne
+    @JoinColumn(name = "username", referencedColumnName = "username", insertable = true, updatable = true)
+    private User user;
 
+    @PrePersist
+    protected void onCreate() {
+        this.updatedAt = Timestamp.from(Instant.now());  // Set the current timestamp
+    }
+    
 	public UUID getUserId() {
 		return userId;
 	}
@@ -93,13 +115,29 @@ public class UserProfile {
 		this.updatedAt = updatedAt;
 	}
 
-	public UserRole getRoleName() {
-		return roleName;
+	public UUID getRoleId() {
+		return roleId;
 	}
 
-	public void setRoleName(UserRole roleName) {
-		this.roleName = roleName;
+	public void setRoleId(UUID roleId) {
+		this.roleId = roleId;
 	}
-    
-    
+
+	public Role getRole() {
+		return role;
+	}
+
+	public void setRole(Role role) {
+		this.role = role;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+	
+	
 }

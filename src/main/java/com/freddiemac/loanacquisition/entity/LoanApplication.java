@@ -42,7 +42,7 @@ public class LoanApplication {
     private Integer requiredApprovalMatrix;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "final_approval_status", nullable = false, columnDefinition = "APPROVAL_STATUS DEFAULT 'PENDING'")
+    @Column(name = "final_approval_status", nullable = false)
     private ApprovalStatus finalApprovalStatus;
 
     @ManyToOne
