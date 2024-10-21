@@ -59,9 +59,9 @@ CREATE TABLE user_profiles (
 -- Create Users Table with username as a foreign key
 CREATE TABLE users (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(255) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    username VARCHAR(255) UNIQUE,
     password VARCHAR(255),
-    secret_key VARCHAR(255) NOT NULL,
     last_login TIMESTAMP,
     role_id UUID NOT NULL,  -- Using the updated USER_ROLES ENUM
     is_active BOOLEAN DEFAULT FALSE,
