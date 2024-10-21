@@ -1,28 +1,24 @@
 package com.freddiemac.loanacquisition.security;
 
-import java.util.Date;
-import java.util.UUID;
-
-import javax.crypto.SecretKey;
-
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtTokenProvider {
 
-    @Value("${app.jwtExpirationInMs}")
+    @Value("${spring.app.jwtExpirationMs}")
     private int jwtExpirationInMs;
 
-    private final SecretKey key;
+    private final Key key;
 
-    public JwtTokenProvider(@Value("${app.jwtSecret}") String jwtSecret) {
+    public JwtTokenProvider(@Value("${spring.app.jwtSecret}") String jwtSecret) {
         this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
@@ -33,29 +29,27 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
-                .subject(userPrincipal.getId().toString())
-                .issuedAt(now)
-                .expiration(expiryDate)
+                .setSubject(userPrincipal.getId().toString())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
                 .signWith(key)
                 .compact();
     }
 
     public UUID getUserIdFromJWT(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(key)
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
                 .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
+                .parseClaimsJws(token)
+                .getBody();
         return UUID.fromString(claims.getSubject());
     }
 
     public boolean validateToken(String authToken) {
         try {
-            Jwts.parser().verifyWith(key).build().parseSignedClaims(authToken);
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            // Log the exception
             return false;
         }
     }

@@ -1,6 +1,5 @@
 package com.freddiemac.loanacquisition.service;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,19 +10,16 @@ import org.springframework.stereotype.Service;
 
 import com.freddiemac.loanacquisition.dto.UserDTO;
 import com.freddiemac.loanacquisition.entity.User;
-import com.freddiemac.loanacquisition.repository.UserRepository;
-import com.freddiemac.loanacquisition.security.PasswordEncryptionUtil;
+import com.freddiemac.loanacquisition.security.UserRepository;
 
 @Service
 public class UserService {
-
-	private static final String NEW_USER_PASSWORD = "password";
 
 	@Autowired
 	private UserRepository userRepository;
 
 	private UserDTO convertToDTO(User user) {
-		return new UserDTO(user.getUserId(), user.getUsername(), user.getPassword(), user.getSecretKey(),
+		return new UserDTO(user.getUserId(), user.getEmail(), user.getUsername(), user.getPassword(),
 				user.getLastLogin(), user.getRoleId(), user.getIsActive());
 	}
 
@@ -32,8 +28,6 @@ public class UserService {
 		User user = new User();
 		user.setIsActive(true);
 		user.setRoleId(userDTO.getRoleId());
-		user.setSecretKey(PasswordEncryptionUtil.generateSecretKey());
-		user.setPassword(PasswordEncryptionUtil.encryptPassword(NEW_USER_PASSWORD, user.getSecretKey()));
 		user.setUsername(userDTO.getUsername());
 
 		return user;
@@ -73,6 +67,10 @@ public class UserService {
 		return userRepository.findById(userId).isPresent();
 	}
 
+	public boolean userExists(String email) {
+		return userRepository.findByEmail(email).isPresent();
+	}
+	
 	public UserDTO updateUser(UUID userId, UserDTO userDTO) throws Exception {
 		Optional<User> existingUser = userRepository.findById(userId);
 		if (existingUser.isPresent()) {

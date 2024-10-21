@@ -69,7 +69,12 @@ public class UserProfileService {
 			return false;
 		} else {
 			UserProfile newUserProfile = new UserProfile();
+			
+			userProfile.getUser().setIsActive(false);
+			userProfile.getUser().setEmail(userProfile.getEmail());
+			userProfile.getUser().setRoleId(userProfile.getRole().getRoleId());
 			User user = userService.createUser(userProfile.getUser());
+			
 			if(user==null) {
 				return false;
 			} else {

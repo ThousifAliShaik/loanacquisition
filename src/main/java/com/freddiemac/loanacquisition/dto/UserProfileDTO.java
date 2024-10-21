@@ -3,11 +3,20 @@ package com.freddiemac.loanacquisition.dto;
 import java.sql.Timestamp;
 import java.util.UUID;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
 public class UserProfileDTO {
     private UUID userId;
     private String username;
+    @NotNull
+    @NotEmpty
     private String email;
+    @NotNull
+    @NotEmpty
     private String fullName;
+    @NotNull
+    @NotEmpty
     private String phoneNumber;
     private Timestamp createdAt;
     private Timestamp updatedAt;

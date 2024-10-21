@@ -15,12 +15,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.freddiemac.loanacquisition.dto.RoleDTO;
 import com.freddiemac.loanacquisition.dto.UserProfileDTO;
+import com.freddiemac.loanacquisition.security.ApiResponse;
 import com.freddiemac.loanacquisition.service.RoleService;
 import com.freddiemac.loanacquisition.service.UserProfileService;
 import com.freddiemac.loanacquisition.service.UserService;
 
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.validation.Valid;
+
 @RestController
-@RequestMapping("/admin")
+@RolesAllowed("ADMIN")
+@RequestMapping("/api/admin")
 public class AdminController {
 	
 	@Autowired
@@ -71,16 +76,28 @@ public class AdminController {
 	}
 	
 	@PostMapping("/new_user")
-	public ResponseEntity<String> createNewUser(@RequestBody UserProfileDTO userProfile) {
-		
-		return new ResponseEntity<>("User added !!", HttpStatus.CREATED);
+	public ResponseEntity<?> createNewUser(@Valid @RequestBody UserProfileDTO userProfile) {
+		boolean userCreated = false;
+		if(userService.userExists(userProfile.getEmail())) {
+			return ResponseEntity
+                    .badRequest()
+                    .body(new ApiResponse(false, "Email is already registered!"));
+		} else {
+			try {
+				userCreated = userProfileService.createNewUserProfile(userProfile);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		if(userCreated)
+			return new ResponseEntity<>("New User added !!", HttpStatus.CREATED);
+		else
+			return new ResponseEntity<>("Adding New User Failed !!", HttpStatus.BAD_REQUEST);
 	}
 	
-	@PostMapping("/disable_user")
+	@PutMapping("/disable_user")
 	public ResponseEntity<String> disableUser(@RequestParam String username) {
-		System.out.println("Reached here!");
 		if(userService.isUsernameTaken(username)) {
-			System.out.println("Reached here!");
 			userService.disableUser(username);
 			return new ResponseEntity<>("User disabled !!", HttpStatus.ACCEPTED);
 		}
@@ -90,9 +107,8 @@ public class AdminController {
 	@PutMapping("/enable_user")
 	public ResponseEntity<String> enableUser(@RequestParam String username) {
 		if(userService.isUsernameTaken(username)) {
-			System.out.println("Reached here!");
 			userService.enableUser(username);
-			return new ResponseEntity<>("User disabled !!", HttpStatus.ACCEPTED);
+			return new ResponseEntity<>("User enabled !!", HttpStatus.ACCEPTED);
 		}
 			return new ResponseEntity<>("User not found !", HttpStatus.NOT_FOUND);
 	}

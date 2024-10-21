@@ -1,28 +1,28 @@
 package com.freddiemac.loanacquisition.security;
 
 public class JwtAuthenticationResponse {
-	
-	private String accessToken;
-	
-	private String tokenType = "Bearer";
+    private String accessToken;
+    private String tokenType = "Bearer";
 
-	public JwtAuthenticationResponse(String accessToken) {
-		this.accessToken = accessToken;
-	}
+    public JwtAuthenticationResponse(String accessToken) {
+        this.accessToken = accessToken;
+    }
 
-	public String getAccessToken() {
-		return accessToken;
-	}
+    // Getters and setters
 
-	public void setAccessToken(String accessToken) {
-		this.accessToken = accessToken;
-	}
+    public String getAccessToken() {
+        return accessToken;
+    }
 
-	public String getTokenType() {
-		return tokenType;
-	}
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
 
-	public void setTokenType(String tokenType) {
-		this.tokenType = tokenType;
-	}
+    public String getTokenType() {
+        return tokenType;
+    }
+
+    public void setTokenType(String tokenType) {
+        this.tokenType = tokenType;
+    }
 }

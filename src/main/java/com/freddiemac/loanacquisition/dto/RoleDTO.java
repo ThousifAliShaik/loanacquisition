@@ -2,8 +2,13 @@ package com.freddiemac.loanacquisition.dto;
 
 import java.util.UUID;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
 public class RoleDTO {
     private UUID roleId;
+    @NotNull
+    @NotEmpty
     private String roleName;
     
     //No-args constructor

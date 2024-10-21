@@ -11,10 +11,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.freddiemac.loanacquisition.entity.User;
 
 public class UserPrincipal implements UserDetails {
+    
+	private static final long serialVersionUID = -8407763106971001857L;
 	
-    private static final long serialVersionUID = -8407763106971001857L;
-	
-    private UUID id;
+	private UUID id;
     private String username;
     private String password;
     private Collection<? extends GrantedAuthority> authorities;
@@ -33,7 +33,7 @@ public class UserPrincipal implements UserDetails {
             user.getUserId(),
             user.getUsername(),
             user.getPassword(),
-            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getUserProfile().getRole())),
+            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getUserProfile().getRole().getRoleName())),
             user.getIsActive()
         );
     }

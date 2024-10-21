@@ -14,15 +14,15 @@ public class User {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_id")
     private UUID userId;
+    
+    @Column(name = "email", nullable = false, unique = true)
+    private String email;
 
-    @Column(name = "username", nullable = false, unique = true)
+    @Column(name = "username", nullable = true, unique = true)
     private String username;
 
     @Column(name = "password", nullable = true)
     private String password;
-
-    @Column(name = "secret_key", nullable = false)
-    private String secretKey;
 
     @Column(name = "last_login", nullable = true)
     private Timestamp lastLogin;
@@ -43,12 +43,21 @@ public class User {
     @OneToMany(mappedBy = "uploadedBy")
     private Set<LoanDocument> loanDocuments;
     
+    
 	public UUID getUserId() {
 		return userId;
 	}
 
 	public void setUserId(UUID userId) {
 		this.userId = userId;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public String getUsername() {
@@ -65,14 +74,6 @@ public class User {
 
 	public void setPassword(String password) {
 		this.password = password;
-	}
-
-	public String getSecretKey() {
-		return secretKey;
-	}
-
-	public void setSecretKey(String secretKey) {
-		this.secretKey = secretKey;
 	}
 
 	public Timestamp getLastLogin() {
@@ -121,6 +122,16 @@ public class User {
 
 	public void setLoanDocuments(Set<LoanDocument> loanDocuments) {
 		this.loanDocuments = loanDocuments;
+	}
+
+	public User(String username, String password) {
+		super();
+		this.username = username;
+		this.password = password;
+	}
+
+	public User() {
+		super();
 	}
     
     
