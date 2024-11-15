@@ -20,8 +20,12 @@ public class Report {
     @Column(name = "report_type", nullable = false)
     private ReportType reportType;
 
-    @Column(name = "file_path", nullable = false)
-    private String filePath;
+    @Column(name = "file_name", nullable = false)
+    private String fileName;
+    
+    @Lob
+    @Column(name = "file_content")
+    private byte[] fileContent;
 
     @Column(name = "generated_at", nullable = false)
     private Timestamp generatedAt;
@@ -41,13 +45,29 @@ public class Report {
 	public void setReportType(ReportType reportType) {
 		this.reportType = reportType;
 	}
-
-	public String getFilePath() {
-		return filePath;
+	
+	public User getGeneratedBy() {
+		return generatedBy;
 	}
 
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
+	public void setGeneratedBy(User generatedBy) {
+		this.generatedBy = generatedBy;
+	}
+
+	public String getFileName() {
+		return fileName;
+	}
+
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	public byte[] getFileContent() {
+		return fileContent;
+	}
+
+	public void setFileContent(byte[] fileContent) {
+		this.fileContent = fileContent;
 	}
 
 	public Timestamp getGeneratedAt() {

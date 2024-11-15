@@ -15,7 +15,7 @@ public class User {
     @Column(name = "user_id")
     private UUID userId;
     
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true, updatable = false)
     private String email;
 
     @Column(name = "username", nullable = true, unique = true)
@@ -34,10 +34,10 @@ public class User {
     private Boolean isActive;
 
     @OneToOne
-    @JoinColumn(name = "username", referencedColumnName = "username", insertable = false, updatable = false)
+    @JoinColumn(name = "email", referencedColumnName = "email",insertable = false, updatable = false)
     private UserProfile userProfile;
 
-    @OneToMany(mappedBy = "applicant")
+    @OneToMany(mappedBy = "finalApprover")
     private Set<LoanApplication> loanApplications;
 
     @OneToMany(mappedBy = "uploadedBy")

@@ -13,7 +13,7 @@ public class RiskAssessment {
     @Column(name = "assessment_id")
     private UUID assessmentId;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "loan_id", nullable = false)
     private LoanApplication loan;
 

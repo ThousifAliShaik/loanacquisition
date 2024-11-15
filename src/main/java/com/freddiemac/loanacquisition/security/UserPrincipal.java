@@ -4,8 +4,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.freddiemac.loanacquisition.entity.User;
@@ -36,6 +38,15 @@ public class UserPrincipal implements UserDetails {
             Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getUserProfile().getRole().getRoleName())),
             user.getIsActive()
         );
+    }
+    
+    public static UUID getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User is not authenticated");
+        }
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return userPrincipal.getId();
     }
 
     @Override

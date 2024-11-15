@@ -58,6 +58,13 @@ public class UnderwriterAssessmentService {
             .map(this::convertToDTO)
             .orElse(null);
     }
+    
+    @Transactional(readOnly = true)
+    public UnderwriterAssessmentDTO getUnderwriterAssessmentByLoanId(UUID loanId) {
+        return underwriterAssessmentRepository.findByLoan_LoanId(loanId)
+            .map(this::convertToDTO)
+            .orElse(null);
+    }
 
     @Transactional
     public UnderwriterAssessmentDTO createUnderwriterAssessment(UnderwriterAssessmentDTO underwriterAssessmentDTO) {

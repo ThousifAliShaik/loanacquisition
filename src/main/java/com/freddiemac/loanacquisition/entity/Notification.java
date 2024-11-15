@@ -73,5 +73,20 @@ public class Notification {
 		this.createdAt = createdAt;
 	}
 
-    
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public LoanApplication getLoan() {
+		return loan;
+	}
+
+	public void setLoan(LoanApplication loan) {
+		this.loan = loan;
+	}
+
 }

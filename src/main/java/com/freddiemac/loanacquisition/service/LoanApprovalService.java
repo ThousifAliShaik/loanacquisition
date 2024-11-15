@@ -1,15 +1,16 @@
 package com.freddiemac.loanacquisition.service;
 
+import java.sql.Timestamp;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 
 import com.freddiemac.loanacquisition.dto.LoanApprovalDTO;
 import com.freddiemac.loanacquisition.entity.ApprovalStatus;
+import com.freddiemac.loanacquisition.entity.LoanApplication;
 import com.freddiemac.loanacquisition.entity.LoanApproval;
 import com.freddiemac.loanacquisition.repository.LoanApprovalRepository;
-
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -48,7 +49,7 @@ public class LoanApprovalService {
     public List<LoanApprovalDTO> getAllLoanApprovals() {
         return loanApprovalRepository.findAll().stream()
             .map(this::convertToDTO)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     
@@ -62,13 +63,67 @@ public class LoanApprovalService {
         return loanApprovalRepository.findByLoan_LoanId(loanId)
             .stream()
             .map(this::convertToDTO)
-            .collect(Collectors.toList());
+            .toList();
+    }
+    
+    public List<LoanApprovalDTO> getLoanApprovalByUserid(UUID userId) {
+        return loanApprovalRepository.findByApprover_UserId(userId)
+            .stream()
+            .map(this::convertToDTO)
+            .toList();
     }
 
-
+    public List<LoanApprovalDTO> getPendingLoanApprovalByUserid(UUID userId) {
+        return loanApprovalRepository.findByApprover_UserIdAndApprovalStatus(userId, ApprovalStatus.PENDING)
+            .stream()
+            .map(this::convertToDTO)
+            .toList();
+    }
+    
+    public List<LoanApprovalDTO> getCompletedLoanApprovalByUserid(UUID userId) {
+        return loanApprovalRepository.findByApprover_UserIdAndApprovalStatusNot(userId, ApprovalStatus.PENDING)
+            .stream()
+            .map(this::convertToDTO)
+            .toList();
+    }
+    
+    public List<LoanApprovalDTO> getPendingForManagerApproval(UUID userId) {
+    	List<UUID> allPendingApplications = loanApprovalRepository.findByApprover_UserIdAndApprovalStatusNot(userId, ApprovalStatus.PENDING)
+                .stream()
+                .map(LoanApproval::getLoan).map(LoanApplication::getLoanId)
+                .toList();
+    	
+    	return loanApprovalRepository.findByLoan_LoanIdInAndApprovalLevelInAndApprovalStatusNot(allPendingApplications,
+    			List.of(1, 2, 3), ApprovalStatus.PENDING)
+    			.stream()
+    			.map(this::convertToDTO)
+                .toList();
+    }
+    
+    public List<LoanApprovalDTO> getPendingForSeniorManagerApproval(UUID userId) {
+    	List<UUID> allPendingApplications = loanApprovalRepository.findByApprover_UserIdAndApprovalStatusNot(userId, ApprovalStatus.PENDING)
+                .stream()
+                .map(LoanApproval::getLoan).map(LoanApplication::getLoanId)
+                .toList();
+    	
+    	return loanApprovalRepository.findByLoan_LoanIdInAndApprovalLevelInAndApprovalStatusNot(allPendingApplications,
+    			List.of(1, 2, 3, 4), ApprovalStatus.PENDING)
+    			.stream()
+    			.map(this::convertToDTO)
+                .toList();
+    }
     
     public LoanApprovalDTO createLoanApproval(LoanApprovalDTO loanApprovalDTO) {
         LoanApproval loanApproval = convertToEntity(loanApprovalDTO);
+        LoanApproval savedLoanApproval = loanApprovalRepository.save(loanApproval);
+        return convertToDTO(savedLoanApproval);
+    }
+    
+    public LoanApprovalDTO updateLoanApproval(LoanApprovalDTO loanApprovalDTO) {
+        LoanApproval loanApproval = loanApprovalRepository.findById(loanApprovalDTO.getApprovalId()).orElseThrow();
+        loanApproval.setApprovalStatus(ApprovalStatus.valueOf(loanApprovalDTO.getApprovalStatus()));
+        loanApproval.setRemarks(loanApprovalDTO.getRemarks());
+        loanApproval.setApprovalDate(new Timestamp(System.currentTimeMillis()));
         LoanApproval savedLoanApproval = loanApprovalRepository.save(loanApproval);
         return convertToDTO(savedLoanApproval);
     }

@@ -59,6 +59,13 @@ public class RiskAssessmentService {
             .orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public RiskAssessmentDTO getRiskAssessmentByLoanId(UUID loanId) {
+        return riskAssessmentRepository.findByLoan_LoanId(loanId)
+            .map(this::convertToDTO)
+            .orElse(null);
+    }
+    
     @Transactional
     public RiskAssessmentDTO createRiskAssessment(RiskAssessmentDTO riskAssessmentDTO) {
         RiskAssessment riskAssessment = convertToEntity(riskAssessmentDTO);

@@ -53,6 +53,13 @@ public class ComplianceAssessmentService {
             .map(this::convertToDTO)
             .orElse(null);
     }
+    
+    @Transactional(readOnly = true)
+    public ComplianceAssessmentDTO getComplianceAssessmentByLoanId(UUID loanId) {
+        return complianceAssessmentRepository.findByLoan_LoanId(loanId)
+            .map(this::convertToDTO)
+            .orElse(null);
+    }
 
     @Transactional
     public ComplianceAssessmentDTO createComplianceAssessment(ComplianceAssessmentDTO complianceAssessmentDTO) {

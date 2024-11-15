@@ -14,7 +14,7 @@ public class UnderwriterAssessment {
     @Column(name = "underwriter_assessment_id")
     private UUID underwriterAssessmentId;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "loan_id", nullable = false)
     private LoanApplication loan;
 

@@ -27,7 +27,8 @@ public class NotificationService {
             notification.getMessage(),
             notification.getNotificationType().name(),
             notification.getIsRead(),
-            notification.getCreatedAt()
+            notification.getCreatedAt(),
+            notification.getLoan().getLoanId()
         );
     }
 
@@ -51,9 +52,17 @@ public class NotificationService {
 
 
     public List<NotificationDTO> getNotificationsByUserId(UUID userId) {
-        return notificationRepository.findByUser_UserId(userId).stream()
+        return notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId).stream()
             .map(this::convertToDTO)
-            .collect(Collectors.toList());
+            .toList();
+    }
+    
+    public long getUnreadNotificationCountByUserId(UUID userId) {
+    	return notificationRepository.findByUser_UserIdAndIsReadFalse(userId).size();
+    }
+    
+    public void markAllNotificationsAsReadByUserId(UUID userId) {
+    	notificationRepository.markNotificationsAsRead(userId);
     }
 
     public NotificationDTO createNotification(NotificationDTO notificationDTO) {

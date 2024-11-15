@@ -12,7 +12,7 @@ public class ComplianceAssessment {
     @Column(name = "compliance_id")
     private UUID complianceId;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "loan_id", nullable = false)
     private LoanApplication loan;
 

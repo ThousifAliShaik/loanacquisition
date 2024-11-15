@@ -2,6 +2,9 @@ package com.freddiemac.loanacquisition.entity;
 
 import jakarta.persistence.*;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
@@ -14,8 +17,8 @@ public class LoanApplication {
     private UUID loanId;
 
     @ManyToOne
-    @JoinColumn(name = "applicant_id", nullable = false)
-    private User applicant;
+    @JoinColumn(name = "lender_id", nullable = false)
+    private Lender lender;
 
     @Column(name = "loan_amount", nullable = false)
     private BigDecimal loanAmount;
@@ -32,10 +35,11 @@ public class LoanApplication {
     @Column(name = "risk_level")
     private RiskLevel riskLevel;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at", nullable = true)
     private Timestamp updatedAt;
 
     @Column(name = "required_approval_matrix", nullable = false)
@@ -142,5 +146,23 @@ public class LoanApplication {
 	public void setIsActive(Boolean isActive) {
 		this.isActive = isActive;
 	}
+
+	public Lender getLender() {
+		return lender;
+	}
+
+	public void setLender(Lender lender) {
+		this.lender = lender;
+	}
+
+	public User getFinalApprover() {
+		return finalApprover;
+	}
+
+	public void setFinalApprover(User finalApprover) {
+		this.finalApprover = finalApprover;
+	}
+	
+	
     
 }

@@ -84,6 +84,22 @@ public class LoanApproval {
 	public void setSLA(Timestamp sLA) {
 		SLA = sLA;
 	}
+
+	public LoanApplication getLoan() {
+		return loan;
+	}
+
+	public void setLoan(LoanApplication loan) {
+		this.loan = loan;
+	}
+
+	public User getApprover() {
+		return approver;
+	}
+
+	public void setApprover(User approver) {
+		this.approver = approver;
+	}
     
     
 }

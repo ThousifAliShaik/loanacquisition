@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.freddiemac.loanacquisition.dto.AdminDashboardMetrics;
 import com.freddiemac.loanacquisition.dto.UserDTO;
 import com.freddiemac.loanacquisition.entity.User;
 import com.freddiemac.loanacquisition.security.UserRepository;
@@ -19,16 +20,16 @@ public class UserService {
 	private UserRepository userRepository;
 
 	private UserDTO convertToDTO(User user) {
-		return new UserDTO(user.getUserId(), user.getEmail(), user.getUsername(), user.getPassword(),
+		return new UserDTO(user.getUserId(), user.getUserProfile().getFullName(), user.getEmail(), user.getUsername(),
 				user.getLastLogin(), user.getRoleId(), user.getIsActive());
 	}
 
 	// Convert UserDTO to User entity
 	private User convertToEntity(UserDTO userDTO) throws Exception {
 		User user = new User();
-		user.setIsActive(true);
+		user.setIsActive(false);
 		user.setRoleId(userDTO.getRoleId());
-		user.setUsername(userDTO.getUsername());
+		user.setEmail(userDTO.getEmail());
 
 		return user;
 	}
@@ -36,26 +37,34 @@ public class UserService {
 	public User createUser(UserDTO userDTO) throws Exception {
 
 		User user = convertToEntity(userDTO);
-		if (user != null) {
 
-			return userRepository.save(user);
-		}
-		return null;
+		return userRepository.save(user);
 	}
 	
 	public User findByUsername(String username) {
-		return userRepository.findByUsername(username).get();
+		Optional<User> user = userRepository.findByUsername(username);
+		return user.isPresent() ? user.get() : null;
+	}
+	
+	public UserDTO findByEmail(String email) {
+		Optional<User> user = userRepository.findByEmail(email);
+		return user.isPresent() ? convertToDTO(user.get()) : null;
+	}
+	
+	public String getNameByUserId(UUID userId) {
+		Optional<User> user = userRepository.findById(userId);
+		return user.isPresent() ? user.get() .getUserProfile().getFullName(): null;
 	}
 
 	public List<UserDTO> getAllUsers() {
-		return userRepository.findAll().stream().map(this::convertToDTO).collect(Collectors.toList());
+		return userRepository.findAll().stream().map(this::convertToDTO).toList();
 	}
 
 	public List<UserDTO> getAllActiveUsers() {
 		return userRepository.findByIsActive(true).stream().map(this::convertToDTO).collect(Collectors.toList());
 	}
 
-	public List<UserDTO> getRole(UUID roleId) {
+	public List<UserDTO> getByRole(UUID roleId) {
 		return userRepository.findByRoleId(roleId).stream().map(this::convertToDTO).collect(Collectors.toList());
 	}
 	
@@ -71,13 +80,13 @@ public class UserService {
 		return userRepository.findByEmail(email).isPresent();
 	}
 	
-	public UserDTO updateUser(UUID userId, UserDTO userDTO) throws Exception {
+	public User updateUser(UUID userId, UserDTO userDTO) throws Exception {
 		Optional<User> existingUser = userRepository.findById(userId);
 		if (existingUser.isPresent()) {
 			User updatedUser = convertToEntity(userDTO);
 			updatedUser.setUserId(userId);
 			User savedUser = userRepository.save(updatedUser);
-			return convertToDTO(savedUser);
+			return savedUser;
 		}
 		return null;
 	}
@@ -104,4 +113,12 @@ public class UserService {
 		return false;
 	}
 
+	public AdminDashboardMetrics getAdminMetrics() {
+		AdminDashboardMetrics metrics = new AdminDashboardMetrics();
+		metrics.setTotalUsers(userRepository.count());
+		metrics.setActiveUsers(userRepository.countByIsActiveTrue());
+		metrics.setDisabledUsers(userRepository.countByUsernameIsNotNullAndIsActiveFalse());
+		metrics.setPendingRegistrations(userRepository.countByUsernameIsNullAndIsActiveFalse());
+		return metrics;
+	}
 }

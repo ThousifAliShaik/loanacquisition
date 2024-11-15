@@ -24,10 +24,10 @@ public class UserProfile {
     @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "username", nullable = false, unique = true, insertable = false, updatable = false)
+    @Column(name = "username", nullable = false, unique = true)
     private String username;
 
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false, unique = true, updatable = false)
     private String email;
 
     @Column(name = "full_name", nullable = false)
@@ -51,7 +51,7 @@ public class UserProfile {
     private Role role;
     
     @OneToOne
-    @JoinColumn(name = "username", referencedColumnName = "username", insertable = true, updatable = true)
+    @JoinColumn(name = "email", referencedColumnName = "email", insertable = false, updatable = false)
     private User user;
 
     @PrePersist

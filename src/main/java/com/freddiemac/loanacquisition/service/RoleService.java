@@ -51,8 +51,9 @@ public class RoleService {
     }
 
    
-    public RoleDTO getRoleByName(String roleName) {
-        return roleRepository.findByRoleName(roleName)
+    public RoleDTO getRoleByName(UserRole userRole) {
+    	
+        return roleRepository.findByRoleName(userRole.name())
             .map(this::convertToDTO)
             .orElse(null);
     }
