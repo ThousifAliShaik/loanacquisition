@@ -8,7 +8,8 @@ CREATE TYPE USER_ROLES AS ENUM (
     'SENIOR_MANAGER', 
     'RISK_ANALYST', 
     'SYSTEM_ADMINISTRATOR', 
-    'COMPLIANCE_OFFICER'
+    'COMPLIANCE_OFFICER',
+    'ADMIN'
 );
 
 CREATE TYPE PERMISSION_NAME AS ENUM (
@@ -33,7 +34,79 @@ CREATE TYPE NOTIFICATION_TYPE AS ENUM ('LOAN_APPLICATION_UPDATE', 'RISK_ASSESSME
 CREATE TYPE REPORT_TYPE AS ENUM ('LOAN_METRICS', 'RISK_ASSESSMENT_SUMMARY', 'APPROVAL_STATUS_OVERVIEW', 'MONTHLY_LOAN_REPORT');
 CREATE TYPE AUDIT_ACTION AS ENUM ('CREATE', 'UPDATE', 'DELETE');
 CREATE TYPE ENTITY_TYPE AS ENUM ('LOAN_APPLICATION', 'DOCUMENT', 'RISK_ASSESSMENT', 'REPORT');
+CREATE TYPE LENDER_TYPE AS ENUM ('BANK', 'CREDIT_UNION', 'PRIVATE_LENDER');
 
+-- Create Lenders table
+CREATE TABLE lenders (
+    lender_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(150),
+    lender_type LENDER_TYPE,
+    registration_number VARCHAR(255) UNIQUE NOT NULL,
+	date_joined TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+	risk_score INTEGER NOT NULL,
+	email VARCHAR(150) UNIQUE,
+	address VARCHAR(255),
+	website_url VARCHAR(255)
+);
+
+-- Insert into Lenders
+INSERT INTO lenders (
+    lender_name, 
+    lender_type, 
+    registration_number, 
+    date_joined, 
+    is_active, 
+    risk_score, 
+    email, 
+    address, 
+    website_url
+) VALUES 
+    (
+        'ABC Bank', 
+        'BANK', 
+        'REG123456', 
+        '2023-01-15 10:30:00', 
+        TRUE, 
+        5, 
+        'contact@abcbank.com', 
+        '1234 Elm Street, New York, NY 10001', 
+        'https://www.abcbank.com'
+    ),
+    (
+        'XYZ Credit Union', 
+        'CREDIT_UNION', 
+        'REG7891011', 
+        '2022-09-10 09:45:00', 
+        TRUE, 
+        3, 
+        'info@xyzcu.com', 
+        '5678 Maple Avenue, Los Angeles, CA 90001', 
+        'https://www.xyzcu.com'
+    ),
+    (
+        'Loans Plus LLC', 
+        'PRIVATE_LENDER', 
+        'REG654321', 
+        '2024-05-20 14:20:00', 
+        FALSE, 
+        7, 
+        'support@loansplus.com', 
+        '9101 Oak Street, Chicago, IL 60601', 
+        'https://www.loansplus.com'
+    ),
+    (
+        'Global Bank Ltd', 
+        'BANK', 
+        'REG11223344', 
+        '2021-12-05 11:15:00', 
+        TRUE, 
+        6, 
+        'contact@globalbank.com', 
+        '4321 Pine Street, Houston, TX 77001', 
+        'https://www.globalbank.com'
+    );
+    
 -- Create Roles Table
 CREATE TABLE roles (
     role_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -94,7 +167,8 @@ INSERT INTO roles (role_id, role_name) VALUES
     (gen_random_uuid(), 'SENIOR_MANAGER'),
     (gen_random_uuid(), 'RISK_ANALYST'),
     (gen_random_uuid(), 'SYSTEM_ADMINISTRATOR'),
-    (gen_random_uuid(), 'COMPLIANCE_OFFICER');
+    (gen_random_uuid(), 'COMPLIANCE_OFFICER'),
+    (gen_random_uuid(), 'ADMIN');
 	
 -- Insert test data into user_profiles with capitalized enums
 INSERT INTO user_profiles (
@@ -176,13 +250,13 @@ INSERT INTO role_permissions (role_permission_id, role_id, permission_name) VALU
 -- Create the Loan Applications table
 CREATE TABLE loan_applications (
     loan_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    applicant_id UUID NOT NULL,
+    lender_id UUID NOT NULL,
     loan_amount DECIMAL(15, 2) NOT NULL,
     loan_type LOAN_TYPE NOT NULL,
     application_status APPLICATION_STATUS NOT NULL,
     risk_level RISK_LEVEL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     required_approval_matrix INT NOT NULL CHECK (required_approval_matrix BETWEEN 3 AND 5),
     final_approval_status APPROVAL_STATUS DEFAULT 'PENDING',
     final_approver UUID,
@@ -190,12 +264,12 @@ CREATE TABLE loan_applications (
     is_active BOOLEAN DEFAULT TRUE,
 
     -- Foreign key constraint
-    FOREIGN KEY (applicant_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (lender_id) REFERENCES lenders(lender_id) ON DELETE CASCADE
 );
 
 -- Insert test data into the loan_applications table
 INSERT INTO loan_applications (
-    loan_id, applicant_id, loan_amount, loan_type, application_status, risk_level, 
+    loan_id, lender_id, loan_amount, loan_type, application_status, risk_level, 
     required_approval_matrix, final_approval_status, final_approver, final_approval_timestamp,
     created_at, updated_at, is_active
 ) VALUES
@@ -487,7 +561,8 @@ CREATE TABLE reports (
     report_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     generated_by UUID NOT NULL,
     report_type REPORT_TYPE NOT NULL,
-    file_path VARCHAR(255) NOT NULL,
+    file_name VARCHAR(100),
+    file_content BYTEA,
     generated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     -- Foreign key constraints
@@ -502,14 +577,16 @@ INSERT INTO reports (
         gen_random_uuid(),
         (SELECT user_id FROM users WHERE username = 'manager'),
         'LOAN_METRICS',
-        '/reports/loan_metrics_report_manager.pdf',
+        'loan_metrics_report_manager.pdf',
+        '',
         CURRENT_TIMESTAMP
     ),
     (
         gen_random_uuid(),
         (SELECT user_id FROM users WHERE username = 'risk_analyst'),
         'RISK_ASSESSMENT_SUMMARY',
-        '/reports/risk_assessment_summary_risk_analyst.pdf',
+        'risk_assessment_summary_risk_analyst.pdf',
+        '',
         CURRENT_TIMESTAMP
     );
 
