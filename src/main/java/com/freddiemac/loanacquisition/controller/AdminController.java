@@ -1,11 +1,14 @@
 package com.freddiemac.loanacquisition.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.freddiemac.loanacquisition.dto.AdminDashboardMetrics;
 import com.freddiemac.loanacquisition.dto.RoleDTO;
 import com.freddiemac.loanacquisition.dto.UserProfileDTO;
 import com.freddiemac.loanacquisition.security.ApiResponse;
@@ -26,7 +30,10 @@ import jakarta.validation.Valid;
 @RestController
 @RolesAllowed("ADMIN")
 @RequestMapping("/api/admin")
+@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 public class AdminController {
+	
+	private static final String USER_NOT_FOUND = "User not found in registry !";
 	
 	@Autowired
 	private UserProfileService userProfileService;
@@ -38,12 +45,22 @@ public class AdminController {
 	private UserService userService;
 	
 	@GetMapping("/all_users")
+	@CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
 	public ResponseEntity<List<UserProfileDTO>> listAllUsers() {
 		List<UserProfileDTO> userProfiles = userProfileService.getAllUserProfiles();
 		if(!userProfiles.isEmpty())
 			return ResponseEntity.ok(userProfiles);
 		else
 			return new ResponseEntity<>(userProfiles, HttpStatus.NOT_FOUND);
+	}
+	
+	@GetMapping("/user/{id}")
+	public ResponseEntity<UserProfileDTO> getUser(@PathVariable UUID id) {
+		UserProfileDTO userProfile = userProfileService.getUserProfileById(id);
+		if(userProfile!=null)
+			return ResponseEntity.ok(userProfile);
+		else
+			return new ResponseEntity<>(userProfile, HttpStatus.NOT_FOUND);
 	}
 	
 	@GetMapping("/active_users")
@@ -76,40 +93,80 @@ public class AdminController {
 	}
 	
 	@PostMapping("/new_user")
-	public ResponseEntity<?> createNewUser(@Valid @RequestBody UserProfileDTO userProfile) {
-		boolean userCreated = false;
-		if(userService.userExists(userProfile.getEmail())) {
-			return ResponseEntity
-                    .badRequest()
-                    .body(new ApiResponse(false, "Email is already registered!"));
-		} else {
+	public ResponseEntity<ApiResponse> createNewUser(@Valid @RequestBody UserProfileDTO userProfile) {
+	    if (userService.userExists(userProfile.getEmail())) {
+	        return ResponseEntity
+	                .badRequest()
+	                .body(new ApiResponse(false, "Email is already registered!"));
+	    }
+
+	    try {
+	        userProfileService.createNewUserProfile(userProfile);
+	        return ResponseEntity
+	                .status(HttpStatus.CREATED)
+	                .body(new ApiResponse(true, "New User added !!"));
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity
+	                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body(new ApiResponse(false, "Adding New User Failed !!"));
+	    }
+	}
+	
+	@GetMapping("/dashboard_metrics")
+	public ResponseEntity<AdminDashboardMetrics> getAdminDashboardMetrics() {
+		return ResponseEntity.ok(userService.getAdminMetrics());
+	}
+
+	
+	@PutMapping("/update_user")
+	public ResponseEntity<ApiResponse> updateUser(@Valid @RequestBody UserProfileDTO userProfile) {
+		boolean userUpdated = false;
+		if(userProfileService.getUserProfileById(userProfile.getUserId())!=null) {
 			try {
-				userCreated = userProfileService.createNewUserProfile(userProfile);
+				userUpdated = userProfileService.updateUserProfile(userProfile);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
+		} else {
+			return ResponseEntity
+                    .badRequest()
+                    .body(new ApiResponse(false, USER_NOT_FOUND));
 		}
-		if(userCreated)
-			return new ResponseEntity<>("New User added !!", HttpStatus.CREATED);
+		if(userUpdated)
+			return ResponseEntity
+	                .status(HttpStatus.CREATED)
+	                .body(new ApiResponse(true, "User updated !!"));
 		else
-			return new ResponseEntity<>("Adding New User Failed !!", HttpStatus.BAD_REQUEST);
+			return ResponseEntity
+	                .status(HttpStatus.BAD_REQUEST)
+	                .body(new ApiResponse(false, "Updating user failed !!"));
 	}
 	
 	@PutMapping("/disable_user")
-	public ResponseEntity<String> disableUser(@RequestParam String username) {
+	public ResponseEntity<ApiResponse> disableUser(@RequestParam String username) {
 		if(userService.isUsernameTaken(username)) {
 			userService.disableUser(username);
-			return new ResponseEntity<>("User disabled !!", HttpStatus.ACCEPTED);
+			return ResponseEntity
+	                .status(HttpStatus.ACCEPTED)
+	                .body(new ApiResponse(true, "User disabled !!"));
 		}
-		return new ResponseEntity<>("User not found !", HttpStatus.NOT_FOUND);
+		return ResponseEntity
+                .badRequest()
+                .body(new ApiResponse(false, USER_NOT_FOUND));
 	}
 	
 	@PutMapping("/enable_user")
-	public ResponseEntity<String> enableUser(@RequestParam String username) {
+	public ResponseEntity<ApiResponse> enableUser(@RequestParam String username) {
 		if(userService.isUsernameTaken(username)) {
 			userService.enableUser(username);
-			return new ResponseEntity<>("User enabled !!", HttpStatus.ACCEPTED);
+			return ResponseEntity
+	                .status(HttpStatus.ACCEPTED)
+	                .body(new ApiResponse(true, "User enabled !!"));
 		}
-			return new ResponseEntity<>("User not found !", HttpStatus.NOT_FOUND);
+		return ResponseEntity
+                .badRequest()
+                .body(new ApiResponse(false, USER_NOT_FOUND));
 	}
 }

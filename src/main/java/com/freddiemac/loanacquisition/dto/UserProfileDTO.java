@@ -22,13 +22,14 @@ public class UserProfileDTO {
     private Timestamp updatedAt;
     private RoleDTO role;
     private UserDTO user;
+    private Boolean isActive;
     
     //No-args constructor
   	public UserProfileDTO() {}
   	
     //All-args constructor
 	public UserProfileDTO(UUID userId, String username, String email, String fullName, String phoneNumber,
-			Timestamp createdAt, Timestamp updatedAt, RoleDTO role, UserDTO user) {
+			Timestamp createdAt, Timestamp updatedAt, RoleDTO role, UserDTO user, Boolean isActive) {
 		super();
 		this.userId = userId;
 		this.username = username;
@@ -39,6 +40,7 @@ public class UserProfileDTO {
 		this.updatedAt = updatedAt;
 		this.role = role;
 		this.user = user;
+		this.isActive = isActive;
 	}
 	public UUID getUserId() {
 		return userId;
@@ -98,6 +100,22 @@ public class UserProfileDTO {
 	public void setUser(UserDTO user) {
 		this.user = user;
 	}
+
+	public Boolean getIsActive() {
+		return isActive;
+	}
+
+	public void setIsActive(Boolean isActive) {
+		this.isActive = isActive;
+	}
+
+	@Override
+	public String toString() {
+		return "UserProfileDTO [userId=" + userId + ", username=" + username + ", email=" + email + ", fullName="
+				+ fullName + ", phoneNumber=" + phoneNumber + ", createdAt=" + createdAt + ", updatedAt=" + updatedAt
+				+ ", role=" + role + ", user=" + user + ", isActive=" + isActive + "]";
+	}
+	
 	
 }
 

@@ -1,7 +1,5 @@
 package com.freddiemac.loanacquisition.controller;
 
-import java.security.NoSuchAlgorithmException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -16,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.freddiemac.loanacquisition.entity.User;
+import com.freddiemac.loanacquisition.entity.UserProfile;
+import com.freddiemac.loanacquisition.repository.UserProfileRepository;
 import com.freddiemac.loanacquisition.security.ApiResponse;
 import com.freddiemac.loanacquisition.security.JwtAuthenticationResponse;
 import com.freddiemac.loanacquisition.security.JwtTokenProvider;
@@ -35,6 +35,9 @@ public class AuthController {
 
     @Autowired
     UserRepository userRepository;
+    
+    @Autowired
+    UserProfileRepository userProfileRepository;
 
     @Autowired
     PasswordEncoder passwordEncoder;
@@ -62,7 +65,7 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwt = tokenProvider.generateToken(authentication);
-        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
+        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt, user.getUserId(), user.getUserProfile().getRole().getRoleName().name()));
     }
 
     @PostMapping("/signup")
@@ -77,9 +80,14 @@ public class AuthController {
                     .badRequest()
                     .body(new ApiResponse(false, "Username is already taken!"));
         }
-
+        UserProfile userProfile = userProfileRepository.findByEmail(signUpRequest.getEmail())
+        		.orElseThrow(() -> new RuntimeException("UserProfile not found"));
         User user = userRepository.findByEmail(signUpRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        userProfile.setUsername(signUpRequest.getUsername());
+        userProfileRepository.saveAndFlush(userProfile);
+        
         user.setUsername(signUpRequest.getUsername());
         
         // Hash the password

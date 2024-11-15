@@ -4,8 +4,15 @@ package com.freddiemac.loanacquisition.dto;
 import java.sql.Timestamp;
 import java.util.UUID;
 
+import jakarta.validation.constraints.NotNull;
+
 public class LoanApprovalDTO {
+	
     private UUID approvalId;
+    @NotNull
+    private UUID approverId;
+    @NotNull
+    private UUID loanId;
     private Integer approvalLevel;
     private String approvalStatus; 
     private String remarks;
@@ -66,6 +73,22 @@ public class LoanApprovalDTO {
 		SLA = sLA;
 	}
 
+	public UUID getApproverId() {
+		return approverId;
+	}
+
+	public void setApproverId(UUID approverId) {
+		this.approverId = approverId;
+	}
+
+	public UUID getLoanId() {
+		return loanId;
+	}
+
+	public void setLoanId(UUID loanId) {
+		this.loanId = loanId;
+	}
+	
     
 }
 

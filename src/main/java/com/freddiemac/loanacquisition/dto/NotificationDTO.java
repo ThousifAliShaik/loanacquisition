@@ -8,6 +8,7 @@ public class NotificationDTO {
     private String message;
     private String notificationType; 
     private Boolean isRead;
+    private UUID loanId;
     private Timestamp createdAt;
     
     //No-args constructor
@@ -16,13 +17,14 @@ public class NotificationDTO {
     //All-args constructor
     
 	public NotificationDTO(UUID notificationId, String message,
-			String notificationType, Boolean isRead, Timestamp createdAt) {
+			String notificationType, Boolean isRead, Timestamp createdAt, UUID loanId) {
 		super();
 		this.notificationId = notificationId;
 		this.message = message;
 		this.notificationType = notificationType;
 		this.isRead = isRead;
 		this.createdAt = createdAt;
+		this.loanId = loanId;
 	}
 	
 	public UUID getNotificationId() {
@@ -56,5 +58,12 @@ public class NotificationDTO {
 		this.createdAt = createdAt;
 	}
 
+	public UUID getLoanId() {
+		return loanId;
+	}
+
+	public void setLoanId(UUID loanId) {
+		this.loanId = loanId;
+	}
    
 }

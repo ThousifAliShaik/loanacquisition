@@ -8,6 +8,7 @@ import com.freddiemac.loanacquisition.entity.RiskLevel;
 
 public class LoanApplicationDTO {
     private UUID loanId;
+    private UUID lenderId;
     private BigDecimal loanAmount;
     private String loanType; 
     private String applicationStatus; 
@@ -19,16 +20,49 @@ public class LoanApplicationDTO {
     private Timestamp finalApprovalTimestamp;
     private Boolean isActive;
     
+    private UUID underwriterId;
+    private UUID riskAnalystId;
+    private UUID complianceOfficerId;
+    private UUID managerId;
+    private UUID seniorManagerId;
+    
     //No-args constructor
     public LoanApplicationDTO() {}
     
     //ALL-arg constructor
-	public LoanApplicationDTO(UUID loanId, BigDecimal loanAmount, String loanType,
+	public LoanApplicationDTO(UUID loanId, UUID lenderId, BigDecimal loanAmount, String loanType,
+			String applicationStatus, RiskLevel riskLevel, Timestamp createdAt, Timestamp updatedAt,
+			Integer requiredApprovalMatrix, String finalApprovalStatus,
+			Timestamp finalApprovalTimestamp, Boolean isActive,
+			UUID underwriterId, UUID riskAnalystId, UUID complianceOfficerId,
+			UUID managerId, UUID seniorManagerId) {
+		super();
+		this.loanId = loanId;
+		this.lenderId = lenderId;
+		this.loanAmount = loanAmount;
+		this.loanType = loanType;
+		this.applicationStatus = applicationStatus;
+		this.riskLevel = riskLevel;
+		this.createdAt = createdAt;
+		this.updatedAt = updatedAt;
+		this.requiredApprovalMatrix = requiredApprovalMatrix;
+		this.finalApprovalStatus = finalApprovalStatus;
+		this.finalApprovalTimestamp = finalApprovalTimestamp;
+		this.isActive = isActive;
+		this.underwriterId = underwriterId;
+		this.riskAnalystId = riskAnalystId;
+		this.complianceOfficerId = complianceOfficerId;
+		this.managerId = managerId;
+		this.seniorManagerId = seniorManagerId;
+	}
+	
+	public LoanApplicationDTO(UUID loanId, UUID lenderId, BigDecimal loanAmount, String loanType,
 			String applicationStatus, RiskLevel riskLevel, Timestamp createdAt, Timestamp updatedAt,
 			Integer requiredApprovalMatrix, String finalApprovalStatus,
 			Timestamp finalApprovalTimestamp, Boolean isActive) {
 		super();
 		this.loanId = loanId;
+		this.lenderId = lenderId;
 		this.loanAmount = loanAmount;
 		this.loanType = loanType;
 		this.applicationStatus = applicationStatus;
@@ -47,6 +81,15 @@ public class LoanApplicationDTO {
 	public void setLoanId(UUID loanId) {
 		this.loanId = loanId;
 	}
+	
+	public UUID getLenderId() {
+		return lenderId;
+	}
+
+	public void setLenderId(UUID lenderId) {
+		this.lenderId = lenderId;
+	}
+
 	public BigDecimal getLoanAmount() {
 		return loanAmount;
 	}
@@ -108,6 +151,56 @@ public class LoanApplicationDTO {
 		this.isActive = isActive;
 	}
 
-    
+	public UUID getUnderwriterId() {
+		return underwriterId;
+	}
+
+	public void setUnderwriterId(UUID underwriterId) {
+		this.underwriterId = underwriterId;
+	}
+
+	public UUID getRiskAnalystId() {
+		return riskAnalystId;
+	}
+
+	public void setRiskAnalystId(UUID riskAnalystId) {
+		this.riskAnalystId = riskAnalystId;
+	}
+
+	public UUID getComplianceOfficerId() {
+		return complianceOfficerId;
+	}
+
+	public void setComplianceOfficerId(UUID complianceOfficerId) {
+		this.complianceOfficerId = complianceOfficerId;
+	}
+
+	public UUID getManagerId() {
+		return managerId;
+	}
+
+	public void setManagerId(UUID managerId) {
+		this.managerId = managerId;
+	}
+
+	public UUID getSeniorManagerId() {
+		return seniorManagerId;
+	}
+
+	public void setSeniorManagerId(UUID seniorManagerId) {
+		this.seniorManagerId = seniorManagerId;
+	}
+
+	@Override
+	public String toString() {
+		return "LoanApplicationDTO [loanId=" + loanId + ", lenderId=" + lenderId + ", loanAmount=" + loanAmount
+				+ ", loanType=" + loanType + ", applicationStatus=" + applicationStatus + ", riskLevel=" + riskLevel
+				+ ", createdAt=" + createdAt + ", updatedAt=" + updatedAt + ", requiredApprovalMatrix="
+				+ requiredApprovalMatrix + ", finalApprovalStatus=" + finalApprovalStatus + ", finalApprovalTimestamp="
+				+ finalApprovalTimestamp + ", isActive=" + isActive + ", underwriterId=" + underwriterId
+				+ ", riskAnalystId=" + riskAnalystId + ", complianceOfficerId=" + complianceOfficerId + ", managerId="
+				+ managerId + ", seniorManagerId=" + seniorManagerId + "]";
+	}
+
 }
 
