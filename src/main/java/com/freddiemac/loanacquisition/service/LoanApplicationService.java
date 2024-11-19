@@ -1,6 +1,7 @@
 package com.freddiemac.loanacquisition.service;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -99,7 +100,8 @@ public class LoanApplicationService {
     }
     
     public List<LoanApplicationDTO> getFinalApprovalPendingLoanApplications() {
-        return loanApplicationRepository.findByFinalApprovalStatusFalseAndIsActiveTrue().stream()
+        return loanApplicationRepository.findByFinalApprover_UserIdAndFinalApprovalStatusAndApplicationStatusAndIsActiveTrue(
+        		UserPrincipal.getCurrentUserId(), ApprovalStatus.PENDING, ApplicationStatus.SUBMITTED).stream()
             .map(this::convertToDTO)
             .toList();
     }
@@ -123,15 +125,16 @@ public class LoanApplicationService {
     }
     
     public LoanApplicationDTO getLoanApplicationById(UUID loanId) {
+    	
         return loanApplicationRepository.findById(loanId)
-            .map(this::convertToDTO)
-            .orElse(null);
+                .map(this::convertToDTO).map(this::addLoanApproverDetails)
+                .orElse(null);
     }
     
     public LoanApplicationDTO updateFinalApprovalStatus(UUID loanId, boolean finalApproval) {
          LoanApplication loanApplication = loanApplicationRepository.findById(loanId).orElse(null);
          if(loanApplication!=null) {
-        
+        	 loanApplication.setApplicationStatus(finalApproval ? ApplicationStatus.APPROVED : ApplicationStatus.REJECTED);
         	 loanApplication.setFinalApprovalStatus(finalApproval ? ApprovalStatus.APPROVED : ApprovalStatus.REJECTED);
         	 loanApplication.setFinalApprovalTimestamp(new Timestamp(System.currentTimeMillis()));
         	 LoanApplication submittedLoanApplication = loanApplicationRepository.save(loanApplication);
@@ -181,32 +184,30 @@ public class LoanApplicationService {
     public LoanApplicationDTO updateLoanApplication(LoanApplicationDTO loanApplicationDTO) {
         Optional<LoanApplication> existingLoanApplication = loanApplicationRepository.findById(loanApplicationDTO.getLoanId());
         if (existingLoanApplication.isPresent()) {
-            LoanApplication updatedLoanApplication = convertToEntity(loanApplicationDTO);
-            updatedLoanApplication.setLoanId(loanApplicationDTO.getLoanId());
-            updatedLoanApplication.setApplicationStatus(ApplicationStatus.UNDER_REVIEW);
-            updatedLoanApplication.setFinalApprovalStatus(ApprovalStatus.PENDING);
-            updatedLoanApplication.setIsActive(true);
-            
-            if(updatedLoanApplication.getRiskLevel().equals(RiskLevel.LOW))
-            	updatedLoanApplication.setRequiredApprovalMatrix(3);
-            else if(updatedLoanApplication.getRiskLevel().equals(RiskLevel.MEDIUM))
-            	updatedLoanApplication.setRequiredApprovalMatrix(4);
+            existingLoanApplication.get().setApplicationStatus(ApplicationStatus.UNDER_REVIEW);
+            existingLoanApplication.get().setFinalApprovalStatus(ApprovalStatus.PENDING);
+            existingLoanApplication.get().setIsActive(loanApplicationDTO.getIsActive());
+            existingLoanApplication.get().setLoanAmount(loanApplicationDTO.getLoanAmount());
+            if(existingLoanApplication.get().getRiskLevel().equals(RiskLevel.LOW))
+            	existingLoanApplication.get().setRequiredApprovalMatrix(3);
+            else if(existingLoanApplication.get().getRiskLevel().equals(RiskLevel.MEDIUM))
+            	existingLoanApplication.get().setRequiredApprovalMatrix(4);
             else 
-            	updatedLoanApplication.setRequiredApprovalMatrix(5);
+            	existingLoanApplication.get().setRequiredApprovalMatrix(5);
             
             //Delete existing approval entries first
             loanApprovalRepostiory.deleteByLoanId(loanApplicationDTO.getLoanId());
             
             createLowRiskApprovalEntries(loanApplicationDTO);
             
-            if(updatedLoanApplication.getRiskLevel().equals(RiskLevel.MEDIUM)) {
+            if(existingLoanApplication.get().getRiskLevel().equals(RiskLevel.MEDIUM)) {
             	createMediumRiskApprovalEntries(loanApplicationDTO);
-            } else if(updatedLoanApplication.getRiskLevel().equals(RiskLevel.HIGH)){
+            } else if(existingLoanApplication.get().getRiskLevel().equals(RiskLevel.HIGH)){
             	createMediumRiskApprovalEntries(loanApplicationDTO);
             	createHighiskApprovalEntries(loanApplicationDTO);
             }
-            
-            LoanApplication savedLoanApplication = loanApplicationRepository.save(updatedLoanApplication);
+            existingLoanApplication.get().setUpdatedAt(Timestamp.from(Instant.now()));
+            LoanApplication savedLoanApplication = loanApplicationRepository.save(existingLoanApplication.get());
             return convertToDTO(savedLoanApplication);
         }
         return null;
@@ -349,6 +350,38 @@ public class LoanApplicationService {
     	metrics.setApplicationsUnderReview(loanApplicationRepository.countByApplicationStatusAndIsActiveTrue(ApplicationStatus.UNDER_REVIEW));
     	metrics.setApplicationsRejected(loanApplicationRepository.countByApplicationStatusAndIsActiveTrue(ApplicationStatus.REJECTED));
     	return metrics;
+    }
+    
+    private LoanApplicationDTO addLoanApproverDetails(LoanApplicationDTO loanApplication) {
+    	List<LoanApproval> loanApprovals = loanApprovalRepostiory.findByLoan_LoanId(loanApplication.getLoanId());
+    	if(!loanApprovals.isEmpty()) {
+    		for(LoanApproval loanApproval : loanApprovals) {
+    			System.out.println("Loan Approval Level: " +loanApproval.getApprovalLevel());
+    			switch (loanApproval.getApprovalLevel()) {
+				case 1:
+					loanApplication.setUnderwriterId(loanApproval.getApprover().getUserId());
+					System.out.println(loanApproval.getApprover().getUserId());
+					break;
+				case 2:
+					loanApplication.setRiskAnalystId(loanApproval.getApprover().getUserId());
+					System.out.println(loanApproval.getApprover().getUserId());
+					break;
+				case 3:
+					loanApplication.setComplianceOfficerId(loanApproval.getApprover().getUserId());
+					System.out.println(loanApproval.getApprover().getUserId());
+					break;
+				case 4:
+					loanApplication.setManagerId(loanApproval.getApprover().getUserId());
+					break;
+				case 5:
+					loanApplication.setSeniorManagerId(loanApproval.getApprover().getUserId());
+					break;
+				default:
+					break;
+				}
+    		}
+    	}
+    	return loanApplication;
     }
     
 }

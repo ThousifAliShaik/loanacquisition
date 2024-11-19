@@ -32,6 +32,7 @@ import com.freddiemac.loanacquisition.service.LoanApprovalService;
 import com.freddiemac.loanacquisition.service.NotificationService;
 import com.freddiemac.loanacquisition.service.RiskAssessmentService;
 import com.freddiemac.loanacquisition.service.UnderwriterAssessmentService;
+import com.freddiemac.loanacquisition.service.UserService;
 import com.freddiemac.loanacquisition.util.pdf.PdfGenerator;
 
 import jakarta.annotation.security.RolesAllowed;
@@ -60,6 +61,9 @@ public class LoanOfficerController {
 	@Autowired
 	private NotificationService notificationService;
 	
+	@Autowired
+	private UserService userService;
+	
 	@PostMapping("/new_application")
 	public ResponseEntity<ApiResponse> addNewLoanApplication(@Valid @RequestBody LoanApplicationDTO loanApplication) {
 		LoanApplicationDTO newLoanApplication = loanApplicationService.createLoanApplication(loanApplication);
@@ -73,13 +77,15 @@ public class LoanOfficerController {
 	}
 	
 	@PostMapping("/edit_application")
-	public ResponseEntity<?> editLoanApplication(@Valid @RequestBody LoanApplicationDTO loanApplication) {
+	public ResponseEntity<ApiResponse> editLoanApplication(@Valid @RequestBody LoanApplicationDTO loanApplication) {
 		LoanApplicationDTO updatedLoanApplication = loanApplicationService.updateLoanApplication(loanApplication);
 		if(updatedLoanApplication.getLoanId()!=null)
-			return new ResponseEntity<>(updatedLoanApplication, HttpStatus.CREATED);
-		return ResponseEntity
-                .badRequest()
-                .body(new ApiResponse(false, "Loan Application is missing important fields !"));
+			return ResponseEntity
+	                .status(HttpStatus.ACCEPTED)
+	                .body(new ApiResponse(true, "Loan Acquisition Application Updated !!"));
+			return ResponseEntity
+	                .badRequest()
+	                .body(new ApiResponse(false, "Loan Application is missing important fields !"));
 	}
 	
 	@GetMapping("/all_applications")
@@ -112,13 +118,16 @@ public class LoanOfficerController {
 		return new ResponseEntity<>(loanApplications, HttpStatus.OK);
 	}
 	
-	@GetMapping("/laon_application/{loanId}")
-	public ResponseEntity<?> getLoanApplication(@PathVariable UUID loanId) {
+	@GetMapping("/loan_application/{loanId}")
+	public ResponseEntity<LoanApplicationDTO> getLoanApplication(@PathVariable UUID loanId) {
 		LoanApplicationDTO loanApplication = loanApplicationService.getLoanApplicationById(loanId);
-		return new ResponseEntity<>(loanApplication, HttpStatus.OK);
+		if(loanApplication!=null)
+			return new ResponseEntity<>(loanApplication, HttpStatus.OK);
+		else
+			return ResponseEntity.badRequest().build();
 	}
 	
-	@GetMapping("/laon_application_extended/{loanId}")
+	@GetMapping("/loan_application_extended/{loanId}")
 	public ResponseEntity<?> getLoanApplicationExtended(@PathVariable UUID loanId) {
 		LoanApplicationDTO loanApplication = loanApplicationService.getLoanApplicationById(loanId);
 		List<LoanApprovalDTO> loanApprovals = loanApprovalService.getLoanApprovalByLoan_id(loanId);
@@ -133,9 +142,16 @@ public class LoanOfficerController {
 	}
 	
 	@PutMapping("/loan_application/{loanId}/final_approval/{status}")
-	public ResponseEntity<?> submitFinalApproval(@PathVariable UUID loanId,@PathVariable String status) {
-		LoanApplicationDTO loanApplication = loanApplicationService.updateFinalApprovalStatus(loanId, status.equals("true"));
-		return new ResponseEntity<>(loanApplication, HttpStatus.CREATED);
+	public ResponseEntity<ApiResponse> submitFinalApproval(@PathVariable UUID loanId,@PathVariable String status) {
+		LoanApplicationDTO loanApplication = loanApplicationService.updateFinalApprovalStatus(loanId, status.equals("approve"));
+		if(loanApplication!=null)
+			return ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .body(new ApiResponse(true, "Loan Acquisition Application Updated !!"));
+		else
+			return ResponseEntity
+	                .badRequest()
+	                .body(new ApiResponse(false, "Loan Application not found !"));
 	}
 	
 	@GetMapping("/loan_application/{loanId}/generate_report")
@@ -149,7 +165,7 @@ public class LoanOfficerController {
 		LoanApplicationExtended loanApplicationExtended = new LoanApplicationExtended(loanApplication, loanApprovals,
 				underwriterAssessment, riskAssessment, complianceAssessment);
 		
-		PdfGenerator pdfGenerator = new PdfGenerator();
+		PdfGenerator pdfGenerator = new PdfGenerator(userService);
 		byte[] fileContent = pdfGenerator.generateLoanApplicationPdf(loanApplicationExtended);
 		HttpHeaders headers = new HttpHeaders();
 	    headers.setContentType(MediaType.APPLICATION_PDF);

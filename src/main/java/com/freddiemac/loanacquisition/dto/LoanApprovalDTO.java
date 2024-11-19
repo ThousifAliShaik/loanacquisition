@@ -13,6 +13,8 @@ public class LoanApprovalDTO {
     private UUID approverId;
     @NotNull
     private UUID loanId;
+    private String approverName;
+    private String approverRoleName;
     private Integer approvalLevel;
     private String approvalStatus; 
     private String remarks;
@@ -36,6 +38,22 @@ public class LoanApprovalDTO {
 		SLA = sLA;
 	}
 	
+	public LoanApprovalDTO(UUID approvalId, @NotNull UUID approverId, @NotNull UUID loanId, String approverName,
+			String approverRoleName, Integer approvalLevel, String approvalStatus, String remarks,
+			Timestamp approvalDate, Timestamp sLA) {
+		super();
+		this.approvalId = approvalId;
+		this.approverId = approverId;
+		this.loanId = loanId;
+		this.approverName = approverName;
+		this.approverRoleName = approverRoleName;
+		this.approvalLevel = approvalLevel;
+		this.approvalStatus = approvalStatus;
+		this.remarks = remarks;
+		this.approvalDate = approvalDate;
+		SLA = sLA;
+	}
+
 	public UUID getApprovalId() {
 		return approvalId;
 	}
@@ -88,7 +106,24 @@ public class LoanApprovalDTO {
 	public void setLoanId(UUID loanId) {
 		this.loanId = loanId;
 	}
+
+	public String getApproverName() {
+		return approverName;
+	}
+
+	public void setApproverName(String approverName) {
+		this.approverName = approverName;
+	}
+
+	public String getApproverRoleName() {
+		return approverRoleName;
+	}
+
+	public void setApproverRoleName(String approverRoleName) {
+		this.approverRoleName = approverRoleName;
+	}
+
 	
-    
+	
 }
 

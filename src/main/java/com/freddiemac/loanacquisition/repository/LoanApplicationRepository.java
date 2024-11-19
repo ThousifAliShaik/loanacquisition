@@ -14,7 +14,9 @@ public interface LoanApplicationRepository extends JpaRepository<LoanApplication
     List<LoanApplication> findByFinalApprover_UserIdAndIsActiveTrue(UUID applicantId);
     List<LoanApplication> findByLoanIdIn(List<UUID> loanIds);
     List<LoanApplication> findByApplicationStatusAndIsActiveTrue(String status);
-    List<LoanApplication> findByFinalApprovalStatusFalseAndIsActiveTrue();
+    List<LoanApplication> findByFinalApprover_UserIdAndFinalApprovalStatusAndApplicationStatusAndIsActiveTrue(
+    		UUID approverId, ApprovalStatus approvalStatus, ApplicationStatus applicationStatus
+		);
     List<LoanApplication> findByFinalApprovalStatusTrueAndIsActiveTrue();
     List<LoanApplication> findByIsActiveTrue();
     List<LoanApplication> findByIsActiveFalse();

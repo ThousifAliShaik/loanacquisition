@@ -26,6 +26,10 @@ public class LoanApprovalService {
     private LoanApprovalDTO convertToDTO(LoanApproval loanApproval) {
         return new LoanApprovalDTO(
             loanApproval.getApprovalId(),
+            loanApproval.getApprover().getUserId(),
+            loanApproval.getLoan().getLoanId(),
+            loanApproval.getApprover().getUserProfile().getFullName(),
+            loanApproval.getApprover().getUserProfile().getRole().getRoleName().name(),
             loanApproval.getApprovalLevel(),
             loanApproval.getApprovalStatus().name(),
             loanApproval.getRemarks(),
