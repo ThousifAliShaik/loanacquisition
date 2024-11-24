@@ -1,29 +1,52 @@
 package com.freddiemac.loanacquisition.service;
 
-import com.freddiemac.loanacquisition.dto.ComplianceAssessmentDTO;
-import com.freddiemac.loanacquisition.entity.ComplianceAssessment;
-import com.freddiemac.loanacquisition.entity.ComplianceStatus;
-import com.freddiemac.loanacquisition.repository.ComplianceAssessmentRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.freddiemac.loanacquisition.dto.ComplianceAssessmentDTO;
+import com.freddiemac.loanacquisition.entity.ApplicationStatus;
+import com.freddiemac.loanacquisition.entity.ApprovalStatus;
+import com.freddiemac.loanacquisition.entity.ComplianceAssessment;
+import com.freddiemac.loanacquisition.entity.ComplianceStatus;
+import com.freddiemac.loanacquisition.entity.LoanApplication;
+import com.freddiemac.loanacquisition.entity.LoanApproval;
+import com.freddiemac.loanacquisition.repository.ComplianceAssessmentRepository;
+import com.freddiemac.loanacquisition.repository.LoanApplicationRepository;
+import com.freddiemac.loanacquisition.repository.LoanApprovalRepository;
+import com.freddiemac.loanacquisition.security.UserPrincipal;
+import com.freddiemac.loanacquisition.security.UserRepository;
 
 @Service
 public class ComplianceAssessmentService {
 
     private final ComplianceAssessmentRepository complianceAssessmentRepository;
-
-    public ComplianceAssessmentService(ComplianceAssessmentRepository complianceAssessmentRepository) {
+    
+    private final LoanApplicationRepository loanApplicationRepository;
+    
+    private final LoanApprovalRepository loanApprovalRepository;
+    
+    private final UserRepository userRepository;
+    
+    public ComplianceAssessmentService(ComplianceAssessmentRepository complianceAssessmentRepository,
+    		LoanApplicationRepository loanApplicationRepository, UserRepository userRepository,
+    		LoanApprovalRepository loanApprovalRepository) {
         this.complianceAssessmentRepository = complianceAssessmentRepository;
+        this.loanApplicationRepository = loanApplicationRepository;
+        this.userRepository = userRepository;
+        this.loanApprovalRepository = loanApprovalRepository;
     }
 
     // Convert ComplianceAssessment entity to ComplianceAssessmentDTO
     private ComplianceAssessmentDTO convertToDTO(ComplianceAssessment complianceAssessment) {
         return new ComplianceAssessmentDTO(
             complianceAssessment.getComplianceId(),
+            complianceAssessment.getLoan().getLoanId(),
+            complianceAssessment.getComplianceOfficer().getUserId(),
             complianceAssessment.getComplianceStatus().name(),
             complianceAssessment.getRemarks(),
             complianceAssessment.getAssessmentDate()
@@ -34,6 +57,8 @@ public class ComplianceAssessmentService {
     private ComplianceAssessment convertToEntity(ComplianceAssessmentDTO complianceAssessmentDTO) {
         ComplianceAssessment complianceAssessment = new ComplianceAssessment();
         complianceAssessment.setComplianceId(complianceAssessmentDTO.getComplianceId());
+        complianceAssessment.setLoan(loanApplicationRepository.findById(complianceAssessmentDTO.getLoanId()).orElse(null));
+        complianceAssessment.setComplianceOfficer(userRepository.findById(UserPrincipal.getCurrentUserId()).orElse(null));
         complianceAssessment.setComplianceStatus(ComplianceStatus.valueOf(complianceAssessmentDTO.getComplianceStatus()));
         complianceAssessment.setRemarks(complianceAssessmentDTO.getRemarks());
         complianceAssessment.setAssessmentDate(complianceAssessmentDTO.getAssessmentDate());
@@ -65,6 +90,21 @@ public class ComplianceAssessmentService {
     public ComplianceAssessmentDTO createComplianceAssessment(ComplianceAssessmentDTO complianceAssessmentDTO) {
         ComplianceAssessment complianceAssessment = convertToEntity(complianceAssessmentDTO);
         ComplianceAssessment savedComplianceAssessment = complianceAssessmentRepository.save(complianceAssessment);
+        
+        LoanApproval loanApproval = loanApprovalRepository.findByLoan_LoanIdAndApprover_UserId(complianceAssessmentDTO.getLoanId(), UserPrincipal.getCurrentUserId()).orElse(null);
+    	if(loanApproval!=null) {
+    		loanApproval.setApprovalDate(new Timestamp(System.currentTimeMillis()));
+        	loanApproval.setApprovalStatus(ApprovalStatus.valueOf(complianceAssessmentDTO.getComplianceStatus().equals("APPROVED") ? "APPROVED" : "REJECTED"));
+        	loanApproval.setRemarks(complianceAssessmentDTO.getRemarks());
+        	loanApprovalRepository.saveAndFlush(loanApproval);
+    	}
+    	
+    	LoanApplication loanApplication = loanApplicationRepository.findById(complianceAssessment.getLoan().getLoanId()).orElse(null);
+    	if(loanApplication!=null && loanApplication.getRequiredApprovalMatrix() == 3) {
+    			loanApplication.setApplicationStatus(ApplicationStatus.SUBMITTED);
+    			loanApplicationRepository.saveAndFlush(loanApplication);
+    	}
+    	
         return convertToDTO(savedComplianceAssessment);
     }
 

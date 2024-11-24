@@ -1,6 +1,7 @@
 package com.freddiemac.loanacquisition.service;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -92,29 +93,41 @@ public class LoanApprovalService {
     }
     
     public List<LoanApprovalDTO> getPendingForManagerApproval(UUID userId) {
-    	List<UUID> allPendingApplications = loanApprovalRepository.findByApprover_UserIdAndApprovalStatusNot(userId, ApprovalStatus.PENDING)
+    	List<UUID> allPendingApplications =new ArrayList<>(loanApprovalRepository.findByApprover_UserIdAndApprovalStatus(userId, ApprovalStatus.PENDING)
                 .stream()
                 .map(LoanApproval::getLoan).map(LoanApplication::getLoanId)
-                .toList();
-    	
-    	return loanApprovalRepository.findByLoan_LoanIdInAndApprovalLevelInAndApprovalStatusNot(allPendingApplications,
+                .toList());
+    	List<UUID> applicationNotReadyYet = new ArrayList<>(loanApprovalRepository.findByLoan_LoanIdInAndApprovalLevelInAndApprovalStatus(allPendingApplications,
     			List.of(1, 2, 3), ApprovalStatus.PENDING)
     			.stream()
+    			.map(LoanApproval::getLoan).map(LoanApplication::getLoanId)
+    			.toList()); 
+    	
+    	allPendingApplications.removeAll(applicationNotReadyYet);
+
+    	return loanApprovalRepository.findByLoan_LoanIdInAndApprover_UserId(allPendingApplications, userId)
+    			.stream()
     			.map(this::convertToDTO)
-                .toList();
+    			.toList();
     }
     
     public List<LoanApprovalDTO> getPendingForSeniorManagerApproval(UUID userId) {
-    	List<UUID> allPendingApplications = loanApprovalRepository.findByApprover_UserIdAndApprovalStatusNot(userId, ApprovalStatus.PENDING)
+    	List<UUID> allPendingApplications =new ArrayList<>(loanApprovalRepository.findByApprover_UserIdAndApprovalStatus(userId, ApprovalStatus.PENDING)
                 .stream()
                 .map(LoanApproval::getLoan).map(LoanApplication::getLoanId)
-                .toList();
-    	
-    	return loanApprovalRepository.findByLoan_LoanIdInAndApprovalLevelInAndApprovalStatusNot(allPendingApplications,
+                .toList());
+    	List<UUID> applicationNotReadyYet = new ArrayList<>(loanApprovalRepository.findByLoan_LoanIdInAndApprovalLevelInAndApprovalStatus(allPendingApplications,
     			List.of(1, 2, 3, 4), ApprovalStatus.PENDING)
     			.stream()
+    			.map(LoanApproval::getLoan).map(LoanApplication::getLoanId)
+    			.toList()); 
+    	
+    	allPendingApplications.removeAll(applicationNotReadyYet);
+
+    	return loanApprovalRepository.findByLoan_LoanIdInAndApprover_UserId(allPendingApplications, userId)
+    			.stream()
     			.map(this::convertToDTO)
-                .toList();
+    			.toList();
     }
     
     public LoanApprovalDTO createLoanApproval(LoanApprovalDTO loanApprovalDTO) {

@@ -48,6 +48,15 @@ public class UserPrincipal implements UserDetails {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         return userPrincipal.getId();
     }
+    
+    public static String getCurrentUserRole() {
+    	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User is not authenticated");
+        }
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return userPrincipal.getAuthorities().iterator().next().toString();
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
