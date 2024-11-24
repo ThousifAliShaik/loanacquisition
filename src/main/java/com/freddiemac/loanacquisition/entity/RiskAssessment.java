@@ -18,8 +18,8 @@ public class RiskAssessment {
     private LoanApplication loan;
 
     @ManyToOne
-    @JoinColumn(name = "underwriter_id", nullable = false)
-    private User underwriter;
+    @JoinColumn(name = "risk_analyst_id", nullable = false)
+    private User riskAnalyst;
 
     @Column(name = "debt_to_income_ratio", nullable = false)
     private BigDecimal debtToIncomeRatio;
@@ -83,6 +83,22 @@ public class RiskAssessment {
 
 	public void setAssessmentDate(Timestamp assessmentDate) {
 		this.assessmentDate = assessmentDate;
+	}
+
+	public LoanApplication getLoan() {
+		return loan;
+	}
+
+	public void setLoan(LoanApplication loan) {
+		this.loan = loan;
+	}
+
+	public User getRiskAnalyst() {
+		return riskAnalyst;
+	}
+
+	public void setRiskAnalyst(User riskAnalyst) {
+		this.riskAnalyst = riskAnalyst;
 	}
     
     

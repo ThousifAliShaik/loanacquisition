@@ -13,10 +13,10 @@ import com.freddiemac.loanacquisition.service.LoanApplicationService;
 import jakarta.annotation.security.RolesAllowed;
 
 @RestController
-@RolesAllowed("RISK_ANALYST")
-@RequestMapping("/api/risk-analyst")
+@RolesAllowed("COMPLIANCE_OFFICER")
+@RequestMapping("/api/compliance-officer")
 @CrossOrigin(origins = "http://localhost:4200", maxAge = 3600)
-public class RiskAnalystController {
+public class ComplianceOfficerController {
 
 	@Autowired
 	private LoanApplicationService loanApplicationService;

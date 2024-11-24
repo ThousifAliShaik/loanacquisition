@@ -100,6 +100,13 @@ public class LoanApproval {
 	public void setApprover(User approver) {
 		this.approver = approver;
 	}
+
+	@Override
+	public String toString() {
+		return "LoanApproval [approvalId=" + approvalId + ", loan=" + loan + ", approver=" + approver
+				+ ", approvalLevel=" + approvalLevel + ", approvalStatus=" + approvalStatus + ", remarks=" + remarks
+				+ ", approvalDate=" + approvalDate + ", SLA=" + SLA + "]";
+	}
     
     
 }

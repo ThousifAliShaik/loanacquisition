@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public class RiskAssessmentDTO {
     private UUID assessmentId;
+    private UUID loanId;
+    private UUID riskAnalystId;
     private BigDecimal debtToIncomeRatio;
     private Integer creditScore;
     private String riskCategory; 
@@ -17,11 +19,13 @@ public class RiskAssessmentDTO {
   	public RiskAssessmentDTO() {}
   	
     //All-args constructor
-	public RiskAssessmentDTO(UUID assessmentId,
+	public RiskAssessmentDTO(UUID assessmentId, UUID loanId, UUID riskAnalystId,
 			BigDecimal debtToIncomeRatio, Integer creditScore, String riskCategory, String remarks,
 			Timestamp assessmentDate) {
 		super();
 		this.assessmentId = assessmentId;
+		this.loanId = loanId;
+		this.riskAnalystId = riskAnalystId;
 		this.debtToIncomeRatio = debtToIncomeRatio;
 		this.creditScore = creditScore;
 		this.riskCategory = riskCategory;
@@ -64,4 +68,21 @@ public class RiskAssessmentDTO {
 	public void setAssessmentDate(Timestamp assessmentDate) {
 		this.assessmentDate = assessmentDate;
 	}
+
+	public UUID getLoanId() {
+		return loanId;
+	}
+
+	public void setLoanId(UUID loanId) {
+		this.loanId = loanId;
+	}
+
+	public UUID getRiskAnalystId() {
+		return riskAnalystId;
+	}
+
+	public void setRiskAnalystId(UUID riskAnalystId) {
+		this.riskAnalystId = riskAnalystId;
+	}
+	
 }

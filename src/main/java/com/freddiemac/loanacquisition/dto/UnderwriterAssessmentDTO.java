@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public class UnderwriterAssessmentDTO {
     private UUID underwriterAssessmentId;
+    private UUID loanId;
+    private UUID userId;
     private BigDecimal loanToValueRatio;
     private String incomeVerificationStatus; 
     private String assessmentOutcome; 
@@ -17,11 +19,13 @@ public class UnderwriterAssessmentDTO {
   	public UnderwriterAssessmentDTO() {}
   	
     //All-args constructor
-	public UnderwriterAssessmentDTO(UUID underwriterAssessmentId, 
+	public UnderwriterAssessmentDTO(UUID underwriterAssessmentId, UUID loanId, UUID userId,
 			BigDecimal loanToValueRatio, String incomeVerificationStatus, String assessmentOutcome, String remarks,
 			Timestamp assessmentDate) {
 		super();
 		this.underwriterAssessmentId = underwriterAssessmentId;
+		this.loanId = loanId;
+		this.userId = userId;
 		this.loanToValueRatio = loanToValueRatio;
 		this.incomeVerificationStatus = incomeVerificationStatus;
 		this.assessmentOutcome = assessmentOutcome;
@@ -34,6 +38,23 @@ public class UnderwriterAssessmentDTO {
 	public void setUnderwriterAssessmentId(UUID underwriterAssessmentId) {
 		this.underwriterAssessmentId = underwriterAssessmentId;
 	}
+	public UUID getLoanId() {
+		return loanId;
+	}
+
+	public void setLoanId(UUID loanId) {
+		this.loanId = loanId;
+	}
+	
+	
+	public UUID getUserId() {
+		return userId;
+	}
+
+	public void setUserId(UUID userId) {
+		this.userId = userId;
+	}
+
 	public BigDecimal getLoanToValueRatio() {
 		return loanToValueRatio;
 	}

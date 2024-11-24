@@ -4,7 +4,10 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 public class ComplianceAssessmentDTO {
+	
     private UUID complianceId;
+    private UUID loanId;
+	private UUID userId;
     private String complianceStatus; 
     private String remarks;
     private Timestamp assessmentDate;
@@ -13,7 +16,7 @@ public class ComplianceAssessmentDTO {
     public ComplianceAssessmentDTO() {}
     
     //All-args constructor
-	public ComplianceAssessmentDTO(UUID complianceId,
+	public ComplianceAssessmentDTO(UUID complianceId, UUID loanId, UUID userId,
 			String complianceStatus, String remarks, Timestamp assessmentDate) {
 		super();
 		this.complianceId = complianceId;
@@ -46,5 +49,21 @@ public class ComplianceAssessmentDTO {
 		this.assessmentDate = assessmentDate;
 	}
 
+	public UUID getLoanId() {
+		return loanId;
+	}
+
+	public void setLoanId(UUID loanId) {
+		this.loanId = loanId;
+	}
+
+	public UUID getUserId() {
+		return userId;
+	}
+
+	public void setUserId(UUID userId) {
+		this.userId = userId;
+	}
+	
     
 }

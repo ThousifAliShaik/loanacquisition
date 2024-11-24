@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,14 +14,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.freddiemac.loanacquisition.dto.ComplianceAssessmentDTO;
+import com.freddiemac.loanacquisition.dto.DashboardMetrics;
 import com.freddiemac.loanacquisition.dto.LenderDTO;
 import com.freddiemac.loanacquisition.dto.LoanApplicationDTO;
+import com.freddiemac.loanacquisition.dto.LoanApplicationExtended;
 import com.freddiemac.loanacquisition.dto.LoanApprovalDTO;
 import com.freddiemac.loanacquisition.dto.RiskAssessmentDTO;
 import com.freddiemac.loanacquisition.dto.RoleDTO;
 import com.freddiemac.loanacquisition.dto.UnderwriterAssessmentDTO;
 import com.freddiemac.loanacquisition.dto.UserDTO;
 import com.freddiemac.loanacquisition.entity.UserRole;
+import com.freddiemac.loanacquisition.security.UserPrincipal;
 import com.freddiemac.loanacquisition.service.ComplianceAssessmentService;
 import com.freddiemac.loanacquisition.service.LenderService;
 import com.freddiemac.loanacquisition.service.LoanApplicationService;
@@ -61,10 +65,36 @@ public class LoanApplicationController {
 	@Autowired
 	private UserService userService;
 	
-	@GetMapping("/{userId}/pending_assessment")
+	@GetMapping("/all_applications")
+	public ResponseEntity<?> getAllLoanApplications() {
+		List<LoanApplicationDTO> loanApplications =loanApplicationService.getAllLoanApplications();
+		return new ResponseEntity<>(loanApplications, HttpStatus.OK);
+	}
+	
+	@GetMapping("/recent_applications")
+	public ResponseEntity<?> getRecentLoanApplications() {
+		List<LoanApplicationDTO> loanApplications =loanApplicationService.getRecentLoanApplications();
+		return new ResponseEntity<>(loanApplications, HttpStatus.OK);
+	}
+	
+	@GetMapping("/loan_application_extended/{loanId}")
+	public ResponseEntity<?> getLoanApplicationExtended(@PathVariable UUID loanId) {
+		LoanApplicationDTO loanApplication = loanApplicationService.getLoanApplicationById(loanId);
+		List<LoanApprovalDTO> loanApprovals = loanApprovalService.getLoanApprovalByLoan_id(loanId);
+		UnderwriterAssessmentDTO underwriterAssessment = underwriterAssessmentService.getUnderwriterAssessmentByLoanId(loanId);
+		RiskAssessmentDTO riskAssessment  = riskAssessmentService.getRiskAssessmentByLoanId(loanId);
+		ComplianceAssessmentDTO complianceAssessment = complianceAssessmentService.getComplianceAssessmentByLoanId(loanId);
+		
+		LoanApplicationExtended loanApplicationExtended = new LoanApplicationExtended(loanApplication, loanApprovals,
+				underwriterAssessment, riskAssessment, complianceAssessment);
+		
+		return new ResponseEntity<>(loanApplicationExtended, HttpStatus.OK);
+	}
+	
+	@GetMapping("/pending_assessment")
 	@RolesAllowed({"UNDERWRITER", "RISK_ANALYST", "COMPLIANCE_OFFICER"})
-	public ResponseEntity<List<LoanApplicationDTO>> getApplicationsPendingAssessment(@PathVariable UUID userId) {
-		List<UUID> loanApplicationIds = loanApprovalService.getPendingLoanApprovalByUserid(userId).stream()
+	public ResponseEntity<List<LoanApplicationDTO>> getApplicationsPendingAssessment() {
+		List<UUID> loanApplicationIds = loanApprovalService.getPendingLoanApprovalByUserid(UserPrincipal.getCurrentUserId()).stream()
 				.map(LoanApprovalDTO::getLoanId) 
 			    .toList();
 		List<LoanApplicationDTO> loanApplications = loanApplicationService.getLoanApplicationsByIds(loanApplicationIds);
@@ -183,5 +213,10 @@ public class LoanApplicationController {
 	public ResponseEntity<List<UserDTO>> getAllSeniorManagers() {
 		RoleDTO role = roleService.getRoleByName(UserRole.SENIOR_MANAGER);
 		return ResponseEntity.ok(userService.getByRole(role.getRoleId()));
+	}
+	
+	@GetMapping("/dashboard_metrics")
+	public ResponseEntity<DashboardMetrics> getDashboardMetrics() {
+		return ResponseEntity.ok(loanApplicationService.getDashboardMetrics());
 	}
 }

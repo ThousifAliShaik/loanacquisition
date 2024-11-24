@@ -87,4 +87,20 @@ public class UnderwriterAssessment {
 		this.assessmentDate = assessmentDate;
 	}
 
+	public LoanApplication getLoan() {
+		return loan;
+	}
+
+	public void setLoan(LoanApplication loan) {
+		this.loan = loan;
+	}
+
+	public User getUnderwriter() {
+		return underwriter;
+	}
+
+	public void setUnderwriter(User underwriter) {
+		this.underwriter = underwriter;
+	}
+	
 }

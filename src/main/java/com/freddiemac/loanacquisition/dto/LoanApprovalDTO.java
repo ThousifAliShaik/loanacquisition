@@ -123,6 +123,14 @@ public class LoanApprovalDTO {
 		this.approverRoleName = approverRoleName;
 	}
 
+	@Override
+	public String toString() {
+		return "LoanApprovalDTO [approvalId=" + approvalId + ", approverId=" + approverId + ", loanId=" + loanId
+				+ ", approverName=" + approverName + ", approverRoleName=" + approverRoleName + ", approvalLevel="
+				+ approvalLevel + ", approvalStatus=" + approvalStatus + ", remarks=" + remarks + ", approvalDate="
+				+ approvalDate + ", SLA=" + SLA + "]";
+	}
+
 	
 	
 }

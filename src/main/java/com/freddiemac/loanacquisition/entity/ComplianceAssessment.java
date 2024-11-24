@@ -61,6 +61,22 @@ public class ComplianceAssessment {
 	public void setAssessmentDate(Timestamp assessmentDate) {
 		this.assessmentDate = assessmentDate;
 	}
+
+	public LoanApplication getLoan() {
+		return loan;
+	}
+
+	public void setLoan(LoanApplication loan) {
+		this.loan = loan;
+	}
+
+	public User getComplianceOfficer() {
+		return complianceOfficer;
+	}
+
+	public void setComplianceOfficer(User complianceOfficer) {
+		this.complianceOfficer = complianceOfficer;
+	}
     
     
 }
