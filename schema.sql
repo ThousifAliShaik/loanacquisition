@@ -374,6 +374,21 @@ CREATE TABLE risk_assessments (
     FOREIGN KEY (underwriter_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
+ALTER TABLE risk_assessments
+RENAME COLUMN underwriter_id TO risk_analyst_id;
+
+
+ALTER TABLE risk_assessments
+DROP CONSTRAINT IF EXISTS risk_assessments_underwriter_id_fkey;
+
+
+ALTER TABLE risk_assessments
+ADD CONSTRAINT risk_assessments_risk_analyst_id_fkey
+    FOREIGN KEY (risk_analyst_id) REFERENCES users(user_id) ON DELETE CASCADE;
+    
+ALTER TABLE risk_assessments
+ADD CONSTRAINT unique_loan_risk_analyst_id UNIQUE (loan_id, risk_analyst_id);
+
 -- Insert test data into the Risk Assessments table
 INSERT INTO risk_assessments (
     assessment_id, loan_id, underwriter_id, debt_to_income_ratio, credit_score, risk_category, remarks, assessment_date
@@ -413,6 +428,9 @@ CREATE TABLE compliance_assessments (
     FOREIGN KEY (compliance_officer_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
+ALTER TABLE compliance_assessments
+ADD CONSTRAINT unique_loan_compliance_officer_id UNIQUE (loan_id, compliance_officer_id);
+
 -- Insert test data into the Compliance Assessments table
 INSERT INTO compliance_assessments (
     compliance_id, loan_id, compliance_officer_id, compliance_status, remarks, assessment_date
@@ -449,6 +467,9 @@ CREATE TABLE underwriter_assessments (
     FOREIGN KEY (loan_id) REFERENCES loan_applications(loan_id) ON DELETE CASCADE,
     FOREIGN KEY (underwriter_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+ALTER TABLE underwriter_assessments
+ADD CONSTRAINT unique_loan_underwriter UNIQUE (loan_id, underwriter_id);
 
 -- Insert test data into the Underwriter Assessments table
 INSERT INTO underwriter_assessments (
