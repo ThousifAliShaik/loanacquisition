@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.freddiemac.loanacquisition.dto.DashboardMetrics;
 import com.freddiemac.loanacquisition.dto.LoanApplicationDTO;
@@ -24,10 +25,13 @@ import com.freddiemac.loanacquisition.entity.NotificationType;
 import com.freddiemac.loanacquisition.entity.RiskLevel;
 import com.freddiemac.loanacquisition.entity.User;
 import com.freddiemac.loanacquisition.entity.UserRole;
+import com.freddiemac.loanacquisition.repository.ComplianceAssessmentRepository;
 import com.freddiemac.loanacquisition.repository.LenderRepository;
 import com.freddiemac.loanacquisition.repository.LoanApplicationRepository;
 import com.freddiemac.loanacquisition.repository.LoanApprovalRepository;
 import com.freddiemac.loanacquisition.repository.NotificationRepository;
+import com.freddiemac.loanacquisition.repository.RiskAssessmentRepository;
+import com.freddiemac.loanacquisition.repository.UnderwriterAssessmentRepository;
 import com.freddiemac.loanacquisition.security.UserPrincipal;
 import com.freddiemac.loanacquisition.security.UserRepository;
 
@@ -50,9 +54,17 @@ public class LoanApplicationService {
 	private LenderRepository lenderRepository;
 	
 	@Autowired
+	private UnderwriterAssessmentRepository underwriterAssessmentRepository;
+	
+	@Autowired
+	private RiskAssessmentRepository riskAssessmentRepository;
+	
+	@Autowired
+	private ComplianceAssessmentRepository complianceAssessmentRepository;
+	
+	@Autowired
 	private LoanApprovalService loanApprovalService;
-
-   
+	
     private LoanApplicationDTO convertToDTO(LoanApplication loanApplication) {
         return new LoanApplicationDTO(loanApplication.getLoanId(),
         		 loanApplication.getLender().getLenderId(),
@@ -192,6 +204,7 @@ public class LoanApplicationService {
         return convertToDTO(loanApplication);
     }
 
+    @Transactional
     public LoanApplicationDTO updateLoanApplication(LoanApplicationDTO loanApplicationDTO) {
         Optional<LoanApplication> existingLoanApplication = loanApplicationRepository.findById(loanApplicationDTO.getLoanId());
         if (existingLoanApplication.isPresent()) {
@@ -199,15 +212,27 @@ public class LoanApplicationService {
             existingLoanApplication.get().setFinalApprovalStatus(ApprovalStatus.PENDING);
             existingLoanApplication.get().setIsActive(loanApplicationDTO.getIsActive());
             existingLoanApplication.get().setLoanAmount(loanApplicationDTO.getLoanAmount());
-            if(existingLoanApplication.get().getRiskLevel().equals(RiskLevel.LOW))
+            if(loanApplicationDTO.getRiskLevel().equals(RiskLevel.LOW.toString())) {
             	existingLoanApplication.get().setRequiredApprovalMatrix(3);
-            else if(existingLoanApplication.get().getRiskLevel().equals(RiskLevel.MEDIUM))
+            	existingLoanApplication.get().setRiskLevel(RiskLevel.LOW);
+            }
+            else if(loanApplicationDTO.getRiskLevel().equals(RiskLevel.MEDIUM.toString())) {
             	existingLoanApplication.get().setRequiredApprovalMatrix(4);
-            else 
+            	existingLoanApplication.get().setRiskLevel(RiskLevel.MEDIUM);
+            }
+            else {
             	existingLoanApplication.get().setRequiredApprovalMatrix(5);
+            	existingLoanApplication.get().setRiskLevel(RiskLevel.HIGH);
+            }
             
             //Delete existing approval entries first
             loanApprovalRepository.deleteByLoanId(loanApplicationDTO.getLoanId());
+            
+            underwriterAssessmentRepository.deleteByLoan_LoanId(loanApplicationDTO.getLoanId());
+            
+            riskAssessmentRepository.deleteByLoan_LoanId(loanApplicationDTO.getLoanId());
+            
+            complianceAssessmentRepository.deleteByLoan_LoanId(loanApplicationDTO.getLoanId());
             
             createLowRiskApprovalEntries(loanApplicationDTO);
             
@@ -372,18 +397,13 @@ public class LoanApplicationService {
     	metrics.setApplicationsRejected(loanApplicationRepository.countByFinalApprovalStatusAndIsActiveTrue(ApprovalStatus.REJECTED));
 
     	UserRole role = UserRole.valueOf(UserPrincipal.getCurrentUserRole().substring(5));
-    	System.out.println(role.toString());
     	if(role == UserRole.MANAGER) {
-    		System.out.println("reached here!!");
-    		List<LoanApprovalDTO> pendingApplications = loanApprovalService.getPendingForManagerApproval(UserPrincipal.getCurrentUserId());
-    		System.out.println("Pending applications size: " + pendingApplications.size());
+    		List<LoanApprovalDTO> pendingApplications = loanApprovalService.getPendingForManagerApproval();
 
-    		metrics.setApplicationsPendingUserAction(loanApprovalService.getPendingForManagerApproval(UserPrincipal.getCurrentUserId()).size());
+    		metrics.setApplicationsPendingUserAction(loanApprovalService.getPendingForManagerApproval().size());
     	} else if(role == UserRole.SENIOR_MANAGER) {
-    		System.out.println("reached here !!!");
-    		metrics.setApplicationsPendingUserAction(loanApprovalService.getPendingForSeniorManagerApproval(UserPrincipal.getCurrentUserId()).size());
+    		metrics.setApplicationsPendingUserAction(loanApprovalService.getPendingForSeniorManagerApproval().size());
     	} else {
-    		System.out.println("reached here !!!!");
     		metrics.setApplicationsPendingUserAction(loanApprovalRepository.countByApprover_UserIdAndApprovalStatus(UserPrincipal.getCurrentUserId(), ApprovalStatus.PENDING));
     	}
     		
@@ -394,19 +414,15 @@ public class LoanApplicationService {
     	List<LoanApproval> loanApprovals = loanApprovalRepository.findByLoan_LoanId(loanApplication.getLoanId());
     	if(!loanApprovals.isEmpty()) {
     		for(LoanApproval loanApproval : loanApprovals) {
-    			System.out.println("Loan Approval Level: " +loanApproval.getApprovalLevel());
     			switch (loanApproval.getApprovalLevel()) {
 				case 1:
 					loanApplication.setUnderwriterId(loanApproval.getApprover().getUserId());
-					System.out.println(loanApproval.getApprover().getUserId());
 					break;
 				case 2:
 					loanApplication.setRiskAnalystId(loanApproval.getApprover().getUserId());
-					System.out.println(loanApproval.getApprover().getUserId());
 					break;
 				case 3:
 					loanApplication.setComplianceOfficerId(loanApproval.getApprover().getUserId());
-					System.out.println(loanApproval.getApprover().getUserId());
 					break;
 				case 4:
 					loanApplication.setManagerId(loanApproval.getApprover().getUserId());

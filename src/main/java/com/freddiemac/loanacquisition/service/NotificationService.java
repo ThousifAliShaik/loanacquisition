@@ -1,15 +1,16 @@
 package com.freddiemac.loanacquisition.service;
 
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.freddiemac.loanacquisition.dto.NotificationDTO;
 import com.freddiemac.loanacquisition.entity.Notification;
 import com.freddiemac.loanacquisition.entity.NotificationType;
 import com.freddiemac.loanacquisition.repository.NotificationRepository;
-import org.springframework.stereotype.Service;
-
-
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class NotificationService {
@@ -61,10 +62,12 @@ public class NotificationService {
     	return notificationRepository.findByUser_UserIdAndIsReadFalse(userId).size();
     }
     
+    @Transactional
     public void markAllNotificationsAsReadByUserId(UUID userId) {
     	notificationRepository.markNotificationsAsRead(userId);
     }
 
+    @Transactional
     public NotificationDTO createNotification(NotificationDTO notificationDTO) {
         Notification notification = convertToEntity(notificationDTO);
         Notification savedNotification = notificationRepository.save(notification);

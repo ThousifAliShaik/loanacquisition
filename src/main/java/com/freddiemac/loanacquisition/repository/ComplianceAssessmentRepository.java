@@ -10,5 +10,7 @@ import com.freddiemac.loanacquisition.entity.ComplianceAssessment;
 public interface ComplianceAssessmentRepository extends JpaRepository<ComplianceAssessment, UUID> {
     // Custom query methods
     Optional<ComplianceAssessment> findByLoan_LoanId(UUID loanId);
+    
+    void deleteByLoan_LoanId(UUID loanId);
 }
 

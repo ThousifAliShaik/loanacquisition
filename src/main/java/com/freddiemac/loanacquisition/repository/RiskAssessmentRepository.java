@@ -11,4 +11,6 @@ import com.freddiemac.loanacquisition.entity.RiskAssessment;
 public interface RiskAssessmentRepository extends JpaRepository<RiskAssessment, UUID> {
     // Custom query methods
     Optional<RiskAssessment> findByLoan_LoanId(UUID loanId);
+    
+    void deleteByLoan_LoanId(UUID loanId);
 }

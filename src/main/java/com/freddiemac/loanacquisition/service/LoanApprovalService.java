@@ -5,22 +5,43 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.freddiemac.loanacquisition.dto.LoanApprovalDTO;
+import com.freddiemac.loanacquisition.entity.ApplicationStatus;
 import com.freddiemac.loanacquisition.entity.ApprovalStatus;
 import com.freddiemac.loanacquisition.entity.LoanApplication;
 import com.freddiemac.loanacquisition.entity.LoanApproval;
+import com.freddiemac.loanacquisition.entity.Notification;
+import com.freddiemac.loanacquisition.entity.NotificationType;
+import com.freddiemac.loanacquisition.entity.RiskLevel;
+import com.freddiemac.loanacquisition.entity.UserRole;
+import com.freddiemac.loanacquisition.repository.LoanApplicationRepository;
 import com.freddiemac.loanacquisition.repository.LoanApprovalRepository;
+import com.freddiemac.loanacquisition.repository.NotificationRepository;
+import com.freddiemac.loanacquisition.security.UserPrincipal;
+import com.freddiemac.loanacquisition.security.UserRepository;
 
 
 @Service
 public class LoanApprovalService {
 
     private final LoanApprovalRepository loanApprovalRepository;
+    
+    private final LoanApplicationRepository loanApplicationRepository;
+    
+	private final NotificationRepository notificationRepository;
+	
+	private final UserRepository userRepository;
 
-    public LoanApprovalService(LoanApprovalRepository loanApprovalRepository) {
+    public LoanApprovalService(LoanApprovalRepository loanApprovalRepository,
+    		LoanApplicationRepository loanApplicationRepository, NotificationRepository notificationRepository,
+    		UserRepository userRepository) {
         this.loanApprovalRepository = loanApprovalRepository;
+        this.loanApplicationRepository = loanApplicationRepository;
+        this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
     }
 
     // Convert LoanApproval entity to LoanApprovalDTO
@@ -92,7 +113,8 @@ public class LoanApprovalService {
             .toList();
     }
     
-    public List<LoanApprovalDTO> getPendingForManagerApproval(UUID userId) {
+    public List<LoanApprovalDTO> getPendingForManagerApproval() {
+    	UUID userId = UserPrincipal.getCurrentUserId();
     	List<UUID> allPendingApplications =new ArrayList<>(loanApprovalRepository.findByApprover_UserIdAndApprovalStatus(userId, ApprovalStatus.PENDING)
                 .stream()
                 .map(LoanApproval::getLoan).map(LoanApplication::getLoanId)
@@ -111,7 +133,8 @@ public class LoanApprovalService {
     			.toList();
     }
     
-    public List<LoanApprovalDTO> getPendingForSeniorManagerApproval(UUID userId) {
+    public List<LoanApprovalDTO> getPendingForSeniorManagerApproval() {
+    	UUID userId = UserPrincipal.getCurrentUserId();
     	List<UUID> allPendingApplications =new ArrayList<>(loanApprovalRepository.findByApprover_UserIdAndApprovalStatus(userId, ApprovalStatus.PENDING)
                 .stream()
                 .map(LoanApproval::getLoan).map(LoanApplication::getLoanId)
@@ -142,11 +165,35 @@ public class LoanApprovalService {
         loanApproval.setRemarks(loanApprovalDTO.getRemarks());
         loanApproval.setApprovalDate(new Timestamp(System.currentTimeMillis()));
         LoanApproval savedLoanApproval = loanApprovalRepository.save(loanApproval);
+        if((savedLoanApproval.getApprover().getUserProfile().getRole().getRoleName().equals(UserRole.MANAGER)
+        		&& savedLoanApproval.getLoan().getRiskLevel().equals(RiskLevel.MEDIUM)) ||
+        		(savedLoanApproval.getApprover().getUserProfile().getRole().getRoleName().equals(UserRole.SENIOR_MANAGER)
+        		&& savedLoanApproval.getLoan().getRiskLevel().equals(RiskLevel.HIGH))) {
+        	LoanApplication loanApplication = loanApplicationRepository.findById(savedLoanApproval.getLoan().getLoanId()).orElse(null);
+        	if(loanApplication!=null) {
+        		loanApplication.setApplicationStatus(ApplicationStatus.SUBMITTED);
+        		loanApplication.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        		createNewAssignmentNotification(loanApplication.getLoanId(), loanApplication.getFinalApprover().getUserId());
+        		loanApplicationRepository.saveAndFlush(loanApplication);
+        	}
+    		
+        }
         return convertToDTO(savedLoanApproval);
     }
 
     
     public void deleteLoanApproval(UUID approvalId) {
         loanApprovalRepository.deleteById(approvalId);
+    }
+    
+    private void createNewAssignmentNotification(UUID loanId, UUID userId) {
+    	Notification notification = new Notification();
+    	notification.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+    	notification.setIsRead(false);
+    	notification.setUser(userRepository.findById(userId).orElseThrow());
+    	notification.setLoan(loanApplicationRepository.findById(loanId).orElseThrow());
+    	notification.setMessage("A new loan acquisition application has been assigned to you.");
+    	notification.setNotificationType(NotificationType.LOAN_APPLICATION_UPDATE);
+    	notificationRepository.save(notification);
     }
 }
