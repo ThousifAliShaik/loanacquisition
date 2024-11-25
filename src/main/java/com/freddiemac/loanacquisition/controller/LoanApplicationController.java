@@ -111,20 +111,20 @@ public class LoanApplicationController {
 		return ResponseEntity.ok(loanApplications);
 	}
 	
-	@GetMapping("/{userId}/pending_manager_approval")
+	@GetMapping("/pending_manager_approval")
 	@RolesAllowed("MANAGER")
-	public ResponseEntity<List<LoanApplicationDTO>> getPendingApplicationsForManager(@PathVariable UUID userId) {
-		List<UUID> loanApplicationIds = loanApprovalService.getPendingForManagerApproval(userId).stream()
+	public ResponseEntity<List<LoanApplicationDTO>> getPendingApplicationsForManager() {
+		List<UUID> loanApplicationIds = loanApprovalService.getPendingForManagerApproval().stream()
 				.map(LoanApprovalDTO::getLoanId) 
 			    .toList();
 		List<LoanApplicationDTO> loanApplications = loanApplicationService.getLoanApplicationsByIds(loanApplicationIds);
 		return ResponseEntity.ok(loanApplications);
 	}
 	
-	@GetMapping("/{userId}/pending_senior_manager_approval")
+	@GetMapping("/pending_senior_manager_approval")
 	@RolesAllowed("SENIOR_MANAGER")
-	public ResponseEntity<List<LoanApplicationDTO>> getPendingApplicationsForSeniorManager(@PathVariable UUID userId) {
-		List<UUID> loanApplicationIds = loanApprovalService.getPendingForSeniorManagerApproval(userId).stream()
+	public ResponseEntity<List<LoanApplicationDTO>> getPendingApplicationsForSeniorManager() {
+		List<UUID> loanApplicationIds = loanApprovalService.getPendingForSeniorManagerApproval().stream()
 				.map(LoanApprovalDTO::getLoanId) 
 			    .toList();
 		List<LoanApplicationDTO> loanApplications = loanApplicationService.getLoanApplicationsByIds(loanApplicationIds);

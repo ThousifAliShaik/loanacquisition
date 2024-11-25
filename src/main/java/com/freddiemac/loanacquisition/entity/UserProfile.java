@@ -24,7 +24,7 @@ public class UserProfile {
     @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "username", nullable = false, unique = true)
+    @Column(name = "username", nullable = true, unique = true)
     private String username;
 
     @Column(name = "email", nullable = false, unique = true, updatable = false)
@@ -40,7 +40,7 @@ public class UserProfile {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Timestamp createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at", nullable = true)
     private Timestamp updatedAt;
 
     @Column(name = "role_id", nullable = false)
