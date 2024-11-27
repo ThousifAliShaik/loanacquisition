@@ -2,6 +2,7 @@ package com.freddiemac.loanacquisition.dto;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 import com.freddiemac.loanacquisition.entity.RiskLevel;
@@ -25,6 +26,7 @@ public class LoanApplicationDTO {
     private UUID complianceOfficerId;
     private UUID managerId;
     private UUID seniorManagerId;
+    private List<LoanDocumentDTO> loanDocuments;
     
     //No-args constructor
     public LoanApplicationDTO() {}
@@ -35,7 +37,7 @@ public class LoanApplicationDTO {
 			Integer requiredApprovalMatrix, String finalApprovalStatus,
 			Timestamp finalApprovalTimestamp, Boolean isActive,
 			UUID underwriterId, UUID riskAnalystId, UUID complianceOfficerId,
-			UUID managerId, UUID seniorManagerId) {
+			UUID managerId, UUID seniorManagerId, List<LoanDocumentDTO> loanDocuments) {
 		super();
 		this.loanId = loanId;
 		this.lenderId = lenderId;
@@ -54,12 +56,13 @@ public class LoanApplicationDTO {
 		this.complianceOfficerId = complianceOfficerId;
 		this.managerId = managerId;
 		this.seniorManagerId = seniorManagerId;
+		this.loanDocuments = loanDocuments;
 	}
 	
 	public LoanApplicationDTO(UUID loanId, UUID lenderId, BigDecimal loanAmount, String loanType,
 			String applicationStatus, RiskLevel riskLevel, Timestamp createdAt, Timestamp updatedAt,
 			Integer requiredApprovalMatrix, String finalApprovalStatus,
-			Timestamp finalApprovalTimestamp, Boolean isActive) {
+			Timestamp finalApprovalTimestamp, Boolean isActive, List<LoanDocumentDTO> loanDocuments) {
 		super();
 		this.loanId = loanId;
 		this.lenderId = lenderId;
@@ -73,6 +76,7 @@ public class LoanApplicationDTO {
 		this.finalApprovalStatus = finalApprovalStatus;
 		this.finalApprovalTimestamp = finalApprovalTimestamp;
 		this.isActive = isActive;
+		this.loanDocuments = loanDocuments;
 	}
 	
 	public UUID getLoanId() {
@@ -189,6 +193,14 @@ public class LoanApplicationDTO {
 
 	public void setSeniorManagerId(UUID seniorManagerId) {
 		this.seniorManagerId = seniorManagerId;
+	}
+	
+	public List<LoanDocumentDTO> getLoanDocuments() {
+		return loanDocuments;
+	}
+
+	public void setLoanDocuments(List<LoanDocumentDTO> loanDocuments) {
+		this.loanDocuments = loanDocuments;
 	}
 
 	@Override

@@ -6,6 +6,8 @@ public class LoanApplicationExtended {
 
 	private LoanApplicationDTO loanApplication;
 	
+	private LenderDTO lenderDetails;
+	
 	private List<LoanApprovalDTO> loanApprovals;
 	
 	private UnderwriterAssessmentDTO underwriterAssessment;
@@ -54,16 +56,26 @@ public class LoanApplicationExtended {
 		this.complianceAssessment = complianceAssessment;
 	}
 
+	
+	public LenderDTO getLenderDetails() {
+		return lenderDetails;
+	}
+
+	public void setLenderDetails(LenderDTO lenderDetails) {
+		this.lenderDetails = lenderDetails;
+	}
+
 	public LoanApplicationExtended() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public LoanApplicationExtended(LoanApplicationDTO loanApplication, List<LoanApprovalDTO> loanApprovals,
-			UnderwriterAssessmentDTO underwriterAssessment, RiskAssessmentDTO riskAssessment,
-			ComplianceAssessmentDTO complianceAssessment) {
+	public LoanApplicationExtended(LoanApplicationDTO loanApplication, LenderDTO lenderDetails,
+			List<LoanApprovalDTO> loanApprovals, UnderwriterAssessmentDTO underwriterAssessment, 
+			RiskAssessmentDTO riskAssessment, ComplianceAssessmentDTO complianceAssessment) {
 		super();
 		this.loanApplication = loanApplication;
+		this.lenderDetails = lenderDetails;
 		this.loanApprovals = loanApprovals;
 		this.underwriterAssessment = underwriterAssessment;
 		this.riskAssessment = riskAssessment;

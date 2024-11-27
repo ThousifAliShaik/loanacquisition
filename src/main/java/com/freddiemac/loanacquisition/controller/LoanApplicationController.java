@@ -84,8 +84,8 @@ public class LoanApplicationController {
 		UnderwriterAssessmentDTO underwriterAssessment = underwriterAssessmentService.getUnderwriterAssessmentByLoanId(loanId);
 		RiskAssessmentDTO riskAssessment  = riskAssessmentService.getRiskAssessmentByLoanId(loanId);
 		ComplianceAssessmentDTO complianceAssessment = complianceAssessmentService.getComplianceAssessmentByLoanId(loanId);
-		
-		LoanApplicationExtended loanApplicationExtended = new LoanApplicationExtended(loanApplication, loanApprovals,
+		LenderDTO lenderDetails = lenderService.getLenderById(loanApplication.getLenderId());
+		LoanApplicationExtended loanApplicationExtended = new LoanApplicationExtended(loanApplication, lenderDetails, loanApprovals,
 				underwriterAssessment, riskAssessment, complianceAssessment);
 		
 		return new ResponseEntity<>(loanApplicationExtended, HttpStatus.OK);

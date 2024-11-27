@@ -1,5 +1,9 @@
 package com.freddiemac.loanacquisition.controller;
 
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,23 +14,31 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.freddiemac.loanacquisition.dto.ComplianceAssessmentDTO;
+import com.freddiemac.loanacquisition.dto.LenderDTO;
 import com.freddiemac.loanacquisition.dto.LoanApplicationDTO;
 import com.freddiemac.loanacquisition.dto.LoanApplicationExtended;
 import com.freddiemac.loanacquisition.dto.LoanApprovalDTO;
+import com.freddiemac.loanacquisition.dto.LoanDocumentDTO;
 import com.freddiemac.loanacquisition.dto.LoanOfficerDashboardMetrics;
 import com.freddiemac.loanacquisition.dto.NotificationDTO;
 import com.freddiemac.loanacquisition.dto.RiskAssessmentDTO;
 import com.freddiemac.loanacquisition.dto.UnderwriterAssessmentDTO;
+import com.freddiemac.loanacquisition.entity.DocumentType;
+import com.freddiemac.loanacquisition.entity.RiskLevel;
 import com.freddiemac.loanacquisition.security.ApiResponse;
 import com.freddiemac.loanacquisition.service.ComplianceAssessmentService;
+import com.freddiemac.loanacquisition.service.LenderService;
 import com.freddiemac.loanacquisition.service.LoanApplicationService;
 import com.freddiemac.loanacquisition.service.LoanApprovalService;
 import com.freddiemac.loanacquisition.service.NotificationService;
@@ -59,25 +71,192 @@ public class LoanOfficerController {
 	private ComplianceAssessmentService complianceAssessmentService;
 	
 	@Autowired
+	private LenderService lenderService;
+	
+	@Autowired
 	private NotificationService notificationService;
 	
 	@Autowired
 	private UserService userService;
 	
 	@PostMapping("/new_application")
-	public ResponseEntity<ApiResponse> addNewLoanApplication(@Valid @RequestBody LoanApplicationDTO loanApplication) {
-		LoanApplicationDTO newLoanApplication = loanApplicationService.createLoanApplication(loanApplication);
-		if(newLoanApplication.getLoanId()!=null)
-			return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(new ApiResponse(true, "Loan Acquisition Application Created !!"));
-		return ResponseEntity
-                .badRequest()
-                .body(new ApiResponse(false, "Loan Application is missing important fields !"));
+	public ResponseEntity<ApiResponse> addNewLoanApplication(
+			@RequestParam String lenderId,
+	        @RequestParam String loanAmount,
+	        @RequestParam String loanType,
+	        @RequestParam String riskLevel,
+	        @RequestParam String isActive,
+	        @RequestParam String underwriterId,
+	        @RequestParam String riskAnalystId,
+	        @RequestParam String complianceOfficerId,
+	        @RequestParam String managerId,
+	        @RequestParam String seniorManagerId,
+	        @RequestParam MultipartFile loanApplicationForm,
+	        @RequestParam MultipartFile loanAgreementDocument,
+	        @RequestParam MultipartFile incomeVerificationDocuments,
+	        @RequestParam MultipartFile complianceRegulatoryDocuments,
+	        @RequestParam MultipartFile collateralDocuments) {
+	    
+	    
+	    
+	    LoanApplicationDTO loanApplication = new LoanApplicationDTO();
+	    loanApplication.setLenderId(UUID.fromString(lenderId));
+	    loanApplication.setLoanAmount(new BigDecimal(loanAmount));
+	    loanApplication.setLoanType(loanType);
+	    loanApplication.setRiskLevel(RiskLevel.valueOf(riskLevel.toUpperCase()));
+	    loanApplication.setIsActive(isActive.equals("true"));
+	    loanApplication.setUnderwriterId(UUID.fromString(underwriterId));
+	    loanApplication.setRiskAnalystId(UUID.fromString(riskAnalystId));
+	    loanApplication.setComplianceOfficerId(UUID.fromString(complianceOfficerId));
+	    if(managerId!=null && !managerId.isBlank())
+	    	loanApplication.setManagerId(UUID.fromString(managerId));
+	    if(seniorManagerId!=null && !seniorManagerId.isBlank())
+	    	loanApplication.setSeniorManagerId(UUID.fromString(seniorManagerId));
+	    
+	    List<LoanDocumentDTO> loanDocuments = new ArrayList<LoanDocumentDTO>();
+	    try {
+	    	
+	    	LoanDocumentDTO loanApplicationFormDoc = new LoanDocumentDTO();
+	 	    loanApplicationFormDoc.setDocumentName(loanApplicationForm.getName() + ".pdf");
+	 	    loanApplicationFormDoc.setDocumentType(DocumentType.LOAN_REQUEST.toString());
+			loanApplicationFormDoc.setFileContent(loanApplicationForm.getBytes());
+			loanApplicationFormDoc.setUploadedAt(new Timestamp(System.currentTimeMillis()));
+			
+			LoanDocumentDTO loanAgreementDocumentDoc = new LoanDocumentDTO();
+			loanAgreementDocumentDoc.setDocumentName(loanAgreementDocument.getName() + ".pdf");
+			loanAgreementDocumentDoc.setDocumentType(DocumentType.LOAN_AGREEMENT.toString());
+			loanAgreementDocumentDoc.setFileContent(loanAgreementDocument.getBytes());
+			loanAgreementDocumentDoc.setUploadedAt(new Timestamp(System.currentTimeMillis()));
+			
+			LoanDocumentDTO incomeVerificationDocumentsDoc = new LoanDocumentDTO();
+			incomeVerificationDocumentsDoc.setDocumentName(incomeVerificationDocuments.getName() + ".pdf");
+			incomeVerificationDocumentsDoc.setDocumentType(DocumentType.INCOME_VERIFICATION.toString());
+			incomeVerificationDocumentsDoc.setFileContent(incomeVerificationDocuments.getBytes());
+			incomeVerificationDocumentsDoc.setUploadedAt(new Timestamp(System.currentTimeMillis()));
+			
+			LoanDocumentDTO complianceRegulatoryDocumentsDoc = new LoanDocumentDTO();
+			complianceRegulatoryDocumentsDoc.setDocumentName(complianceRegulatoryDocuments.getName() + ".pdf");
+			complianceRegulatoryDocumentsDoc.setDocumentType(DocumentType.COMPLIANCE_REGULATORY.toString());
+			complianceRegulatoryDocumentsDoc.setFileContent(complianceRegulatoryDocuments.getBytes());
+			complianceRegulatoryDocumentsDoc.setUploadedAt(new Timestamp(System.currentTimeMillis()));
+			
+			LoanDocumentDTO collateralDocumentsDoc = new LoanDocumentDTO();
+			collateralDocumentsDoc.setDocumentName(collateralDocuments.getName() + ".pdf");
+			collateralDocumentsDoc.setDocumentType(DocumentType.COLLATERAL.toString());
+			collateralDocumentsDoc.setFileContent(collateralDocuments.getBytes());
+			collateralDocumentsDoc.setUploadedAt(new Timestamp(System.currentTimeMillis()));
+			
+			loanDocuments.add(loanApplicationFormDoc);
+			loanDocuments.add(loanAgreementDocumentDoc);
+			loanDocuments.add(incomeVerificationDocumentsDoc);
+			loanDocuments.add(complianceRegulatoryDocumentsDoc);
+			loanDocuments.add(collateralDocumentsDoc);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	    
+	    loanApplication.setLoanDocuments(loanDocuments);
+	    
+	    LoanApplicationDTO newLoanApplication = loanApplicationService.createLoanApplication(loanApplication);
+	    if (newLoanApplication.getLoanId() != null)
+	        return ResponseEntity
+	            .status(HttpStatus.CREATED)
+	            .body(new ApiResponse(true, "Loan Acquisition Application Created !!"));
+	    
+	    return ResponseEntity
+	            .badRequest()
+	            .body(new ApiResponse(false, "Loan Application is missing important fields !"));
 	}
+
 	
 	@PostMapping("/edit_application")
-	public ResponseEntity<ApiResponse> editLoanApplication(@Valid @RequestBody LoanApplicationDTO loanApplication) {
+	public ResponseEntity<ApiResponse> editLoanApplication(
+			@RequestParam String loanId,
+			@RequestParam String lenderId,
+	        @RequestParam String loanAmount,
+	        @RequestParam String loanType,
+	        @RequestParam String riskLevel,
+	        @RequestParam String isActive,
+	        @RequestParam String underwriterId,
+	        @RequestParam String riskAnalystId,
+	        @RequestParam String complianceOfficerId,
+	        @RequestParam String managerId,
+	        @RequestParam String seniorManagerId,
+	        @RequestParam(required = false) MultipartFile loanApplicationForm,
+	        @RequestParam(required = false) MultipartFile loanAgreementDocument,
+	        @RequestParam(required = false) MultipartFile incomeVerificationDocuments,
+	        @RequestParam(required = false) MultipartFile complianceRegulatoryDocuments,
+	        @RequestParam(required = false) MultipartFile collateralDocuments) {
+		
+		LoanApplicationDTO loanApplication = new LoanApplicationDTO();
+		loanApplication.setLoanId(UUID.fromString(loanId));
+	    loanApplication.setLenderId(UUID.fromString(lenderId));
+	    loanApplication.setLoanAmount(new BigDecimal(loanAmount));
+	    loanApplication.setLoanType(loanType);
+	    loanApplication.setRiskLevel(RiskLevel.valueOf(riskLevel.toUpperCase()));
+	    loanApplication.setIsActive(isActive.equals("true"));
+	    loanApplication.setUnderwriterId(UUID.fromString(underwriterId));
+	    loanApplication.setRiskAnalystId(UUID.fromString(riskAnalystId));
+	    loanApplication.setComplianceOfficerId(UUID.fromString(complianceOfficerId));
+	    if(managerId!=null && !managerId.isBlank() && !managerId.equals("null"))
+	    	loanApplication.setManagerId(UUID.fromString(managerId));
+	    if(seniorManagerId!=null && !seniorManagerId.isBlank() && !seniorManagerId.equals("null"))
+	    	loanApplication.setSeniorManagerId(UUID.fromString(seniorManagerId));
+	    
+	    List<LoanDocumentDTO> loanDocuments = new ArrayList<LoanDocumentDTO>();
+	    try {
+	    	if(loanApplicationForm!=null) {
+	    		LoanDocumentDTO loanApplicationFormDoc = new LoanDocumentDTO();
+		 	    loanApplicationFormDoc.setDocumentName(loanApplicationForm.getName() + ".pdf");
+		 	    loanApplicationFormDoc.setDocumentType(DocumentType.LOAN_REQUEST.toString());
+				loanApplicationFormDoc.setFileContent(loanApplicationForm.getBytes());
+				loanApplicationFormDoc.setUploadedAt(new Timestamp(System.currentTimeMillis()));
+				loanDocuments.add(loanApplicationFormDoc);
+    		}
+	    	
+	    	if(loanAgreementDocument!=null) {
+	    		LoanDocumentDTO loanAgreementDocumentDoc = new LoanDocumentDTO();
+				loanAgreementDocumentDoc.setDocumentName(loanAgreementDocument.getName() + ".pdf");
+				loanAgreementDocumentDoc.setDocumentType(DocumentType.LOAN_AGREEMENT.toString());
+				loanAgreementDocumentDoc.setFileContent(loanAgreementDocument.getBytes());
+				loanAgreementDocumentDoc.setUploadedAt(new Timestamp(System.currentTimeMillis()));
+				loanDocuments.add(loanAgreementDocumentDoc);
+	    	}
+			
+			if(incomeVerificationDocuments!=null) {
+				LoanDocumentDTO incomeVerificationDocumentsDoc = new LoanDocumentDTO();
+				incomeVerificationDocumentsDoc.setDocumentName(incomeVerificationDocuments.getName() + ".pdf");
+				incomeVerificationDocumentsDoc.setDocumentType(DocumentType.INCOME_VERIFICATION.toString());
+				incomeVerificationDocumentsDoc.setFileContent(incomeVerificationDocuments.getBytes());
+				incomeVerificationDocumentsDoc.setUploadedAt(new Timestamp(System.currentTimeMillis()));
+				loanDocuments.add(incomeVerificationDocumentsDoc);
+			}
+			
+			if(complianceRegulatoryDocuments!=null) {
+				LoanDocumentDTO complianceRegulatoryDocumentsDoc = new LoanDocumentDTO();
+				complianceRegulatoryDocumentsDoc.setDocumentName(complianceRegulatoryDocuments.getName() + ".pdf");
+				complianceRegulatoryDocumentsDoc.setDocumentType(DocumentType.COMPLIANCE_REGULATORY.toString());
+				complianceRegulatoryDocumentsDoc.setFileContent(complianceRegulatoryDocuments.getBytes());
+				complianceRegulatoryDocumentsDoc.setUploadedAt(new Timestamp(System.currentTimeMillis()));
+				loanDocuments.add(complianceRegulatoryDocumentsDoc);
+			}
+			
+			if(collateralDocuments!=null) {
+				LoanDocumentDTO collateralDocumentsDoc = new LoanDocumentDTO();
+				collateralDocumentsDoc.setDocumentName(collateralDocuments.getName() + ".pdf");
+				collateralDocumentsDoc.setDocumentType(DocumentType.COLLATERAL.toString());
+				collateralDocumentsDoc.setFileContent(collateralDocuments.getBytes());
+				collateralDocumentsDoc.setUploadedAt(new Timestamp(System.currentTimeMillis()));
+				loanDocuments.add(collateralDocumentsDoc);
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	    
+	    loanApplication.setLoanDocuments(loanDocuments);
+	    
 		LoanApplicationDTO updatedLoanApplication = loanApplicationService.updateLoanApplication(loanApplication);
 		if(updatedLoanApplication.getLoanId()!=null)
 			return ResponseEntity
@@ -134,8 +313,8 @@ public class LoanOfficerController {
 		UnderwriterAssessmentDTO underwriterAssessment = underwriterAssessmentService.getUnderwriterAssessmentByLoanId(loanId);
 		RiskAssessmentDTO riskAssessment  = riskAssessmentService.getRiskAssessmentByLoanId(loanId);
 		ComplianceAssessmentDTO complianceAssessment = complianceAssessmentService.getComplianceAssessmentByLoanId(loanId);
-		
-		LoanApplicationExtended loanApplicationExtended = new LoanApplicationExtended(loanApplication, loanApprovals,
+		LenderDTO lenderDetails = lenderService.getLenderById(loanApplication.getLenderId());
+		LoanApplicationExtended loanApplicationExtended = new LoanApplicationExtended(loanApplication, lenderDetails, loanApprovals,
 				underwriterAssessment, riskAssessment, complianceAssessment);
 		
 		return new ResponseEntity<>(loanApplicationExtended, HttpStatus.OK);
@@ -161,8 +340,8 @@ public class LoanOfficerController {
 		UnderwriterAssessmentDTO underwriterAssessment = underwriterAssessmentService.getUnderwriterAssessmentByLoanId(loanId);
 		RiskAssessmentDTO riskAssessment  = riskAssessmentService.getRiskAssessmentByLoanId(loanId);
 		ComplianceAssessmentDTO complianceAssessment = complianceAssessmentService.getComplianceAssessmentByLoanId(loanId);
-		
-		LoanApplicationExtended loanApplicationExtended = new LoanApplicationExtended(loanApplication, loanApprovals,
+		LenderDTO lenderDetails = lenderService.getLenderById(loanApplication.getLenderId());
+		LoanApplicationExtended loanApplicationExtended = new LoanApplicationExtended(loanApplication, lenderDetails, loanApprovals,
 				underwriterAssessment, riskAssessment, complianceAssessment);
 		
 		PdfGenerator pdfGenerator = new PdfGenerator(userService);

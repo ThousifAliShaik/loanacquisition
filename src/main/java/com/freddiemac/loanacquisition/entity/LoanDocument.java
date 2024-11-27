@@ -23,9 +23,10 @@ public class LoanDocument {
     @Column(name = "document_type", nullable = false)
     private DocumentType documentType;
 
-    @Column(name = "file_path", nullable = false)
-    private String filePath;
-
+    @Lob
+    @Column(name = "file_content", nullable = false)
+    private byte[] fileContent;
+    
     @ManyToOne
     @JoinColumn(name = "uploaded_by", nullable = false)
     private User uploadedBy;
@@ -57,12 +58,28 @@ public class LoanDocument {
 		this.documentType = documentType;
 	}
 
-	public String getFilePath() {
-		return filePath;
+	public LoanApplication getLoan() {
+		return loan;
 	}
 
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
+	public void setLoan(LoanApplication loan) {
+		this.loan = loan;
+	}
+
+	public byte[] getFileContent() {
+		return fileContent;
+	}
+
+	public void setFileContent(byte[] fileContent) {
+		this.fileContent = fileContent;
+	}
+
+	public User getUploadedBy() {
+		return uploadedBy;
+	}
+
+	public void setUploadedBy(User uploadedBy) {
+		this.uploadedBy = uploadedBy;
 	}
 
 	public Timestamp getUploadedAt() {
