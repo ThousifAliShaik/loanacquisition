@@ -14,9 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.freddiemac.loanacquisition.dto.DashboardMetrics;
 import com.freddiemac.loanacquisition.dto.LoanApplicationDTO;
 import com.freddiemac.loanacquisition.dto.LoanApprovalDTO;
+import com.freddiemac.loanacquisition.dto.LoanDocumentDTO;
 import com.freddiemac.loanacquisition.dto.LoanOfficerDashboardMetrics;
 import com.freddiemac.loanacquisition.entity.ApplicationStatus;
 import com.freddiemac.loanacquisition.entity.ApprovalStatus;
+import com.freddiemac.loanacquisition.entity.DocumentType;
 import com.freddiemac.loanacquisition.entity.LoanApplication;
 import com.freddiemac.loanacquisition.entity.LoanApproval;
 import com.freddiemac.loanacquisition.entity.LoanType;
@@ -29,6 +31,7 @@ import com.freddiemac.loanacquisition.repository.ComplianceAssessmentRepository;
 import com.freddiemac.loanacquisition.repository.LenderRepository;
 import com.freddiemac.loanacquisition.repository.LoanApplicationRepository;
 import com.freddiemac.loanacquisition.repository.LoanApprovalRepository;
+import com.freddiemac.loanacquisition.repository.LoanDocumentRepository;
 import com.freddiemac.loanacquisition.repository.NotificationRepository;
 import com.freddiemac.loanacquisition.repository.RiskAssessmentRepository;
 import com.freddiemac.loanacquisition.repository.UnderwriterAssessmentRepository;
@@ -63,6 +66,9 @@ public class LoanApplicationService {
 	private ComplianceAssessmentRepository complianceAssessmentRepository;
 	
 	@Autowired
+	private LoanDocumentService loanDocumentService;
+	
+	@Autowired
 	private LoanApprovalService loanApprovalService;
 	
     private LoanApplicationDTO convertToDTO(LoanApplication loanApplication) {
@@ -77,7 +83,8 @@ public class LoanApplicationService {
                  loanApplication.getRequiredApprovalMatrix(),
                  loanApplication.getFinalApprovalStatus().name(),
                  loanApplication.getFinalApprovalTimestamp(),
-                 loanApplication.getIsActive()
+                 loanApplication.getIsActive(),
+                 loanDocumentService.getLoanDocumentsByLoanId(loanApplication.getLoanId())
         );
     }
 
@@ -187,6 +194,12 @@ public class LoanApplicationService {
         LoanApplication savedApplication = loanApplicationRepository.save(loanApplication);
         LoanApplicationDTO savedApplicationDTO = convertToDTO(savedApplication);
         
+        for(LoanDocumentDTO loanDocument : loanApplicationDTO.getLoanDocuments()) {
+        	loanDocument.setLoanId(savedApplicationDTO.getLoanId());
+        	loanDocument.setUploadedBy(UserPrincipal.getCurrentUserId());
+        	loanDocumentService.createLoanDocument(loanDocument);
+        }
+        
         savedApplicationDTO.setComplianceOfficerId(loanApplicationDTO.getComplianceOfficerId());
         savedApplicationDTO.setRiskAnalystId(loanApplicationDTO.getRiskAnalystId());
         savedApplicationDTO.setUnderwriterId(loanApplicationDTO.getUnderwriterId());
@@ -233,6 +246,20 @@ public class LoanApplicationService {
             riskAssessmentRepository.deleteByLoan_LoanId(loanApplicationDTO.getLoanId());
             
             complianceAssessmentRepository.deleteByLoan_LoanId(loanApplicationDTO.getLoanId());
+            
+            if(loanApplicationDTO.getLoanDocuments().size() == 5) {
+            	loanDocumentService.deleteLoanDocumentsByLoanId(loanApplicationDTO.getLoanId());
+            }
+            
+            for(LoanDocumentDTO loanDocument : loanApplicationDTO.getLoanDocuments()) {
+            	if(loanApplicationDTO.getLoanDocuments().size() != 5) {
+            		loanDocumentService.deleteLoanDocumentByLoanIdAndDocumentType(loanApplicationDTO.getLoanId(),
+            				DocumentType.valueOf(loanDocument.getDocumentType()));
+            	}
+            	loanDocument.setLoanId(loanApplicationDTO.getLoanId());
+            	loanDocument.setUploadedBy(UserPrincipal.getCurrentUserId());
+            	loanDocumentService.createLoanDocument(loanDocument);
+            }
             
             createLowRiskApprovalEntries(loanApplicationDTO);
             
